@@ -1,0 +1,1 @@
+export default function ImportContactsPage() { return <div>Import Contacts</div>; }

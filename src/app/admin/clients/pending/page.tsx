@@ -1,0 +1,1 @@
+export default function AdminPendingClientsPage() { return <div>Pending Clients</div>; }

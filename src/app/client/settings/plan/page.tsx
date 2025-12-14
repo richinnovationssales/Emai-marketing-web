@@ -1,0 +1,1 @@
+export default function PlanSettingsPage() { return <div>Plan Settings</div>; }

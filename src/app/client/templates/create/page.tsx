@@ -1,0 +1,1 @@
+export default function CreateTemplatePage() { return <div>Create Template</div>; }

@@ -1,0 +1,1 @@
+export default function InviteEmployeePage() { return <div>Invite Employee</div>; }

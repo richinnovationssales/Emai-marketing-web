@@ -1,0 +1,1 @@
+export default function ContactAnalyticsPage() { return <div>Contact Analytics</div>; }

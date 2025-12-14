@@ -1,0 +1,70 @@
+// Application route paths
+export const ROUTES = {
+    // Public routes
+    HOME: '/',
+    LOGIN: '/login',
+    LOGIN_ADMIN: '/login/admin',
+    LOGIN_CLIENT: '/login/client',
+    REGISTER: '/register',
+
+    // Admin routes (Unified for Admin and Super Admin)
+    ADMIN: {
+        DASHBOARD: '/admin/dashboard',
+        // Super Admin specific
+        ADMINS: '/admin/admins',
+        ADMINS_CREATE: '/admin/admins/create',
+        ADMIN_DETAILS: (id: string) => `/admin/admins/${id}`,
+        ACTIVITY_LOGS: '/admin/activity-logs',
+
+        // Common Admin routes
+        CLIENTS: '/admin/clients',
+        CLIENTS_PENDING: '/admin/clients/pending',
+        CLIENT_DETAILS: (id: string) => `/admin/clients/${id}`,
+        CLIENT_USERS: (id: string) => `/admin/clients/${id}/users`,
+        CLIENT_ANALYTICS: (id: string) => `/admin/clients/${id}/analytics`,
+        PLANS: '/admin/plans',
+        PLANS_CREATE: '/admin/plans/create',
+        PLAN_DETAILS: (id: string) => `/admin/plans/${id}`,
+    },
+
+    // Client routes
+    CLIENT: {
+        DASHBOARD: '/client/dashboard',
+        CONTACTS: '/client/contacts',
+        CONTACTS_CREATE: '/client/contacts/create',
+        CONTACTS_IMPORT: '/client/contacts/import',
+        CONTACT_DETAILS: (id: string) => `/client/contacts/${id}`,
+        CONTACT_EDIT: (id: string) => `/client/contacts/${id}/edit`,
+        GROUPS: '/client/groups',
+        GROUPS_CREATE: '/client/groups/create',
+        GROUP_DETAILS: (id: string) => `/client/groups/${id}`,
+        GROUP_CONTACTS: (id: string) => `/client/groups/${id}/contacts`,
+        CAMPAIGNS: '/client/campaigns',
+        CAMPAIGNS_CREATE: '/client/campaigns/create',
+        CAMPAIGN_DETAILS: (id: string) => `/client/campaigns/${id}`,
+        CAMPAIGN_EDIT: (id: string) => `/client/campaigns/${id}/edit`,
+        CAMPAIGN_ANALYTICS: (id: string) => `/client/campaigns/${id}/analytics`,
+        TEMPLATES: '/client/templates',
+        TEMPLATES_CREATE: '/client/templates/create',
+        TEMPLATE_DETAILS: (id: string) => `/client/templates/${id}`,
+        TEMPLATE_EDIT: (id: string) => `/client/templates/${id}/edit`,
+        EMPLOYEES: '/client/employees',
+        EMPLOYEES_INVITE: '/client/employees/invite',
+        EMPLOYEE_DETAILS: (id: string) => `/client/employees/${id}`,
+        USERS: '/client/users',
+        USERS_CREATE: '/client/users/create',
+        USER_DETAILS: (id: string) => `/client/users/${id}`,
+        CUSTOM_FIELDS: '/client/custom-fields',
+        CUSTOM_FIELDS_CREATE: '/client/custom-fields/create',
+        CUSTOM_FIELDS_REQUESTS: '/client/custom-fields/requests',
+        CUSTOM_FIELD_DETAILS: (id: string) => `/client/custom-fields/${id}`,
+        ANALYTICS: '/client/analytics',
+        ANALYTICS_CAMPAIGNS: '/client/analytics/campaigns',
+        ANALYTICS_CONTACTS: '/client/analytics/contacts',
+        SETTINGS: '/client/settings',
+        SETTINGS_PROFILE: '/client/settings/profile',
+        SETTINGS_PLAN: '/client/settings/plan',
+        SETTINGS_USERS: '/client/settings/users',
+        ACTIVITY: '/client/activity',
+    },
+} as const;

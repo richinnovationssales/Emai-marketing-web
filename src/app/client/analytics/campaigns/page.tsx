@@ -1,0 +1,1 @@
+export default function CampaignAnalyticsListPage() { return <div>Campaign Analytics</div>; }
