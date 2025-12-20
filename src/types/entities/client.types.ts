@@ -1,9 +1,33 @@
+export enum CustomFieldType {
+    TEXT = "TEXT",
+    NUMBER = "NUMBER",
+    EMAIL = "EMAIL",
+    PHONE = "PHONE",
+    DATE = "DATE",
+    BOOLEAN = "BOOLEAN",
+    URL = "URL",
+    TEXTAREA = "TEXTAREA",
+    SELECT = "SELECT",
+    MULTISELECT = "MULTISELECT"
+}
+
+export interface CustomFieldDefinition {
+    name: string;
+    fieldKey: string;
+    type: CustomFieldType;
+    isRequired?: boolean;
+    defaultValue?: string;
+    options?: string;
+    validationRegex?: string;
+    helpText?: string;
+    displayOrder?: number;
+}
+
 export interface Plan {
     id: string;
     name: string;
-    emailLimit: number | null;
+    emailLimit: number;
     price: number;
-    isActive: boolean;
     createdAt: string;
     updatedAt: string;
 }
@@ -25,33 +49,32 @@ export interface Client {
 export interface CreateClientDTO {
     name: string;
     planId: string;
-    adminUser: {
-        email: string;
-        password: string;
-    };
-    customFields?: Array<{
-        name: string;
-        fieldKey: string;
-        type: string;
-        isRequired?: boolean;
-    }>;
+    adminEmail: string;
+    adminPassword: string;
+    customFields?: CustomFieldDefinition[];
 }
 
 export interface UpdateClientDTO {
     name?: string;
     planId?: string;
+    planStartDate?: string;
+    planRenewalDate?: string;
+    remainingMessages?: number;
+    isApproved?: boolean;
     isActive?: boolean;
 }
 
 export interface ClientAnalytics {
-    totalContacts: number;
-    activeCampaigns: number;
-    // Add other fields as needed based on backend
+    totalEmailsSent?: number;
+    campaignsScheduled?: number;
+    campaignsSent?: number;
+    planName?: string;
+    remainingMessages?: number;
 }
 
-export interface OnboardClientDTO extends CreateClientDTO {
-    // Check if there are differences, spec says keys but structure seems similar
-    // for now we extend CreateClientDTO
+export interface OnboardClientDTO {
+    name: string;
+    planId: string;
 }
 
 export interface ClientWithStats extends Client {

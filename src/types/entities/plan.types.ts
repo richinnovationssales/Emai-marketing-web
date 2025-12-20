@@ -1,25 +1,28 @@
 export interface Plan {
     id: string;
     name: string;
-    emailLimit: number | null;
+    emailLimit: number;
     price: number;
-    isActive: boolean;
     createdAt: string;
     updatedAt: string;
 }
 
 export interface CreatePlanDTO {
     name: string;
-    emailLimit: number | null;
+    emailLimit: number;
     price: number;
 }
 
 export interface UpdatePlanDTO {
     name?: string;
-    emailLimit?: number | null;
+    emailLimit?: number;
     price?: number;
-    isActive?: boolean;
+}
+
+export interface PlanWithClientCount extends Plan {
+    clientCount?: number;
 }
 
 export type CreatePlanData = CreatePlanDTO;
 export type UpdatePlanData = UpdatePlanDTO;
+

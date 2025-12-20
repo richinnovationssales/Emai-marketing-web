@@ -21,7 +21,11 @@
   TEMPLATES: '/templates',
   USERS: '/users',
   EMPLOYEES: '/employees',
-  PLANS: '/plans',
+  PLANS: {
+    BASE: '/admin/plans',
+    BY_ID: (id: string) => `/admin/plans/${id}`,
+    CLIENTS: (id: string) => `/admin/plans/${id}/clients`,
+  },
   CUSTOM_FIELDS: '/custom-fields',
   DASHBOARD: {
     SUMMARY: '/dashboard/summary',
@@ -37,3 +41,4 @@
     BY_ID: (id: string) => `/admin/users/${id}`,
   },
 };
+
