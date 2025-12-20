@@ -9,23 +9,21 @@ export function middleware(request: NextRequest) {
     const token = request.cookies.get('auth-token')?.value;
     const { pathname } = request.nextUrl;
 
-    // Allow public routes
-    if (publicRoutes.some((route) => pathname === route || pathname.startsWith(route + '/'))) {
+    const isLoginPage = pathname === '/login' || pathname.startsWith('/login/');
+    if (token && isLoginPage) {
+        return NextResponse.redirect(new URL('/admin/dashboard', request.url));
+    }
+
+    if (publicRoutes.some((route) => pathname === route) || isLoginPage || pathname === '/register') {
         return NextResponse.next();
     }
 
-    // Redirect to login if no token
     if (!token) {
         const loginUrl = new URL('/login', request.url);
         loginUrl.searchParams.set('redirect', pathname);
         return NextResponse.redirect(loginUrl);
     }
 
-    // TODO: Decode JWT and verify role-based access
-    // For admin routes, check for ADMIN or SUPER_ADMIN role
-    // For client routes, check for CLIENT_* roles
-
-    // For now, allow all authenticated users
     return NextResponse.next();
 }
 

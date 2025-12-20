@@ -1,3 +1,5 @@
+'use client';
+
 import { Suspense } from 'react';
 import { DashboardStats } from '@/components/dashboard/DashboardStats';
 import { CampaignsChart } from '@/components/dashboard/CampaignsChart';

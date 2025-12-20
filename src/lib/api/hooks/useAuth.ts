@@ -1,7 +1,8 @@
 ﻿import { useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import {logout as logoutAction,
+import {
+    logout as logoutAction,
     setCredentials,
     selectCurrentUser,
     selectIsAuthenticated,

@@ -1,16 +1,17 @@
 import { configureStore } from '@reduxjs/toolkit';
 import authReducer from './slices/auth.slice';
 import uiReducer from './slices/ui.slice';
+import adminReducer from './slices/admin.slice';
 
 export const store = configureStore({
     reducer: {
         auth: authReducer,
         ui: uiReducer,
+        admin: adminReducer,
     },
     middleware: (getDefaultMiddleware) =>
         getDefaultMiddleware({
             serializableCheck: {
-                // Ignore these paths in the state for date serialization
                 ignoredPaths: ['ui.modal.data'],
             },
         }),

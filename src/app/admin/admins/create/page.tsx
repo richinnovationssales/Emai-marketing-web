@@ -28,9 +28,10 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { adminService } from '@/lib/api/services/admin.service';
 import { ROUTES } from '@/lib/constants/routes';
 import { AdminRole } from '@/types/enums/admin-role.enum';
+import { useAppDispatch } from '@/store/hooks';
+import { createAdmin } from '@/store/slices/admin.slice';
 
 // Define schema locally for now, or move to validations file
 const createAdminSchema = z.object({
@@ -43,6 +44,7 @@ type CreateAdminFormValues = z.infer<typeof createAdminSchema>;
 
 export default function CreateAdminPage() {
   const router = useRouter();
+  const dispatch = useAppDispatch();
   const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<CreateAdminFormValues>({
@@ -57,12 +59,12 @@ export default function CreateAdminPage() {
   async function onSubmit(data: CreateAdminFormValues) {
     setIsLoading(true);
     try {
-      await adminService.createAdmin(data);
+      await dispatch(createAdmin(data)).unwrap();
       toast.success('Admin created successfully');
       router.push(ROUTES.ADMIN.ADMINS);
     } catch (error: any) {
       console.error('Failed to create admin:', error);
-      toast.error(error.response?.data?.message || 'Failed to create admin');
+      toast.error(error || 'Failed to create admin');
     } finally {
       setIsLoading(false);
     }

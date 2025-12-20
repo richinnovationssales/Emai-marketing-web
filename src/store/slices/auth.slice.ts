@@ -28,12 +28,44 @@ const authSlice = createSlice({
             state.isAuthenticated = true;
             state.isLoading = false;
             state.error = null;
+
+            if (typeof window !== 'undefined') {
+                localStorage.setItem('auth-token', action.payload.token);
+                localStorage.setItem('auth-user', JSON.stringify(action.payload.user));
+                document.cookie = `auth-token=${action.payload.token}; path=/; max-age=${60 * 60 * 24 * 7}`; // 7 days
+            }
         },
         logout: (state) => {
             state.user = null;
             state.token = null;
             state.isAuthenticated = false;
             state.error = null;
+
+            if (typeof window !== 'undefined') {
+                localStorage.removeItem('auth-token');
+                localStorage.removeItem('auth-user');
+                document.cookie = 'auth-token=; path=/; max-age=0';
+            }
+        },
+        hydrateAuth: (state) => {
+            if (typeof window !== 'undefined') {
+                const token = localStorage.getItem('auth-token');
+                const userStr = localStorage.getItem('auth-user');
+
+                if (token && userStr) {
+                    try {
+                        const user = JSON.parse(userStr);
+                        state.user = user;
+                        state.token = token;
+                        state.isAuthenticated = true;
+                    } catch (error) {
+                        console.error('Failed to parse stored user data:', error);
+                        localStorage.removeItem('auth-token');
+                        localStorage.removeItem('auth-user');
+                    }
+                }
+                state.isLoading = false;
+            }
         },
         setLoading: (state, action: PayloadAction<boolean>) => {
             state.isLoading = action.payload;
@@ -48,12 +80,15 @@ const authSlice = createSlice({
         updateUser: (state, action: PayloadAction<Partial<User | Admin>>) => {
             if (state.user) {
                 state.user = { ...state.user, ...action.payload } as User | Admin;
+                if (typeof window !== 'undefined') {
+                    localStorage.setItem('auth-user', JSON.stringify(state.user));
+                }
             }
         },
     },
 });
 
-export const { setCredentials, logout, setLoading, setError, clearError, updateUser } = authSlice.actions;
+export const { setCredentials, logout, hydrateAuth, setLoading, setError, clearError, updateUser } = authSlice.actions;
 export default authSlice.reducer;
 
 // Selectors

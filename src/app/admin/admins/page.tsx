@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Plus, Search, MoreHorizontal, Pencil, Trash2, CheckCircle, XCircle } from 'lucide-react';
+import { Plus, Search, MoreHorizontal, Trash2, CheckCircle, XCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
@@ -25,65 +25,58 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import PageContainer from '@/components/layout/PageContainer';
-import { adminService } from '@/lib/api/services/admin.service';
-import { Admin } from '@/types/entities/admin.types';
 import { ROUTES } from '@/lib/constants/routes';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import {
+  fetchAdmins,
+  deleteAdmin as deleteAdminAction,
+  toggleAdminStatus as toggleAdminStatusAction,
+  selectAdmins,
+  selectAdminLoading,
+  selectAdminInitialized,
+} from '@/store/slices/admin.slice';
 
 export default function AdminsPage() {
-  const [admins, setAdmins] = useState<Admin[]>([]);
-  const [loading, setLoading] = useState(true);
+  const dispatch = useAppDispatch();
+  const admins = useAppSelector(selectAdmins);
+  const loading = useAppSelector(selectAdminLoading);
+  const initialized = useAppSelector(selectAdminInitialized);
+  
   const [searchQuery, setSearchQuery] = useState('');
-
-  const fetchAdmins = async () => {
-    try {
-      const response = await adminService.getAdmins();
-      // Assuming response is PaginatedResponse, so data property holds array
-      // If it's direct array or enveloped differently, we might need adjustments.
-      // Based on service types: PaginatedResponse<Admin> implies response.data is Admin[]
-      // But verify if response.data.data or response.data 
-      // PaginatedResponse usually has data, meta, links.
-      // Let's assume response.data is the array for now based on standard.
-      setAdmins(response.data);
-    } catch (error) {
-      console.error('Failed to fetch admins:', error);
-      toast.error('Failed to load admins');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    fetchAdmins();
-  }, []);
+    setMounted(true);
+    if (!initialized) {
+      dispatch(fetchAdmins());
+    }
+  }, [dispatch, initialized]);
 
   const handleDelete = async (id: string) => {
     if (confirm('Are you sure you want to delete this admin?')) {
       try {
-        await adminService.deleteAdmin(id);
+        await dispatch(deleteAdminAction(id)).unwrap();
         toast.success('Admin deleted successfully');
-        fetchAdmins();
-      } catch (error) {
+      } catch (error: any) {
         console.error('Failed to delete admin:', error);
-        toast.error('Failed to delete admin');
+        toast.error(error || 'Failed to delete admin');
       }
     }
   };
 
-  const handleStatusToggle = async (admin: Admin) => {
+  const handleStatusToggle = async (id: string, currentStatus: boolean) => {
     try {
-      await adminService.toggleAdminStatus(admin.id, !admin.isActive);
-      toast.success(`Admin ${!admin.isActive ? 'activated' : 'deactivated'} successfully`);
-      fetchAdmins();
-    } catch (error) {
+      await dispatch(toggleAdminStatusAction({ id, isActive: !currentStatus })).unwrap();
+      toast.success(`Admin ${!currentStatus ? 'activated' : 'deactivated'} successfully`);
+    } catch (error: any) {
       console.error('Failed to update admin status:', error);
-      toast.error('Failed to update admin status');
+      toast.error(error || 'Failed to update admin status');
     }
   };
 
-  const filteredAdmins = admins.filter(admin =>
-    admin.email.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredAdmins = admins?.filter(admin =>
+    admin?.email.toLowerCase().includes(searchQuery.toLowerCase())
+  ) || [];
 
   return (
     <div className="space-y-6">
@@ -139,14 +132,14 @@ export default function AdminsPage() {
                       Loading...
                     </TableCell>
                   </TableRow>
-                ) : filteredAdmins.length === 0 ? (
+                ) : filteredAdmins?.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={5} className="text-center py-10">
                       No admins found.
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredAdmins.map((admin) => (
+                  filteredAdmins?.map((admin) => (
                     <TableRow key={admin.id}>
                       <TableCell className="font-medium">{admin.email}</TableCell>
                       <TableCell>
@@ -161,7 +154,7 @@ export default function AdminsPage() {
                           </Badge>
                       </TableCell>
                       <TableCell>
-                        {new Date(admin.createdAt).toLocaleDateString()}
+                        {mounted ? new Date(admin.createdAt).toLocaleDateString() : '—'}
                       </TableCell>
                       <TableCell className="text-right">
                         <DropdownMenu>
@@ -174,7 +167,7 @@ export default function AdminsPage() {
                           <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Actions</DropdownMenuLabel>
                             <DropdownMenuItem
-                              onClick={() => handleStatusToggle(admin)}
+                              onClick={() => handleStatusToggle(admin.id, admin.isActive)}
                             >
                               {admin.isActive ? (
                                 <>
