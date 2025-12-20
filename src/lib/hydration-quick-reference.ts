@@ -10,22 +10,22 @@
 
 // ❌ OLD WAY (causes hydration errors)
 import { format } from 'date-fns';
-{ format(new Date(user.createdAt), 'MMM d, yyyy') }
+// { format(new Date(user.createdAt), 'MMM d, yyyy') }
 
 // ✅ NEW WAY (hydration-safe)
 import { FormattedDate } from '@/components/ui/formatted-date';
-<FormattedDate date={ user.createdAt } formatStr = "MMM d, yyyy" />
+// <FormattedDate date={ user.createdAt } formatStr = "MMM d, yyyy" />
 
-    // With custom format
-    <FormattedDate date={ user.createdAt } formatStr = "PPP" />
-        <FormattedDate date={ user.createdAt } formatStr = "MMM d, yyyy 'at' h:mm a" />
+// With custom format
+// <FormattedDate date={ user.createdAt } formatStr = "PPP" />
+// <FormattedDate date={ user.createdAt } formatStr = "MMM d, yyyy 'at' h:mm a" />
 
-            // ============================================
-            // 2. BROWSER-ONLY CONTENT
-            // ============================================
+// ============================================
+// 2. BROWSER-ONLY CONTENT
+// ============================================
 
-            // ❌ OLD WAY
-            { typeof window !== 'undefined' && <ClientWidget /> }
+// ❌ OLD WAY
+{ typeof window !== 'undefined' && <ClientWidget /> }
 
 // ✅ NEW WAY
 import { ClientOnly } from '@/components/ui/client-only';

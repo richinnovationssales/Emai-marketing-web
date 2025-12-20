@@ -6,6 +6,7 @@ import { store } from '@/store';
 import { Toaster } from 'sonner';
 import { useState, useEffect } from 'react';
 import { hydrateAuth } from '@/store/slices/auth.slice';
+import { ClientOnly } from '@/components/ui/client-only';
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(

@@ -35,7 +35,7 @@ import {
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Plus } from 'lucide-react';
-import { toast } from 'sonner';
+// import { toast } from 'sonner';
 import { Plan, CreatePlanDTO, UpdatePlanDTO } from '@/types/entities/plan.types';
 
 export default function AdminPlansPage() {
@@ -58,19 +58,19 @@ export default function AdminPlansPage() {
 
     useEffect(() => {
         if (error) {
-            toast.error(error);
+            // toast.error(String(error));
             dispatch(clearPlanError());
         }
     }, [error, dispatch]);
 
-    const handleCreatePlan = async (data: CreatePlanDTO) => {
+    const handleCreatePlan = async (data: CreatePlanDTO | UpdatePlanDTO) => {
         try {
-            await dispatch(createPlan(data)).unwrap();
-            toast.success('Plan created successfully');
+            await dispatch(createPlan(data as CreatePlanDTO)).unwrap();
+            // toast.success('Plan created successfully');
             setCreateDialogOpen(false);
             dispatch(fetchPlans());
         } catch (err: any) {
-            toast.error(err || 'Failed to create plan');
+            // toast.error(err || 'Failed to create plan');
         }
     };
 
@@ -84,17 +84,17 @@ export default function AdminPlansPage() {
         setEditDialogOpen(true);
     };
 
-    const handleUpdatePlan = async (data: UpdatePlanDTO) => {
+    const handleUpdatePlan = async (data: CreatePlanDTO | UpdatePlanDTO) => {
         if (!selectedPlan) return;
 
         try {
-            await dispatch(updatePlan({ id: selectedPlan.id, data })).unwrap();
-            toast.success('Plan updated successfully');
+            await dispatch(updatePlan({ id: selectedPlan.id, data: data as UpdatePlanDTO })).unwrap();
+            // toast.success('Plan updated successfully');
             setEditDialogOpen(false);
             setSelectedPlan(null);
             dispatch(fetchPlans());
         } catch (err: any) {
-            toast.error(err || 'Failed to update plan');
+            // toast.error(err || 'Failed to update plan');
         }
     };
 
@@ -113,13 +113,13 @@ export default function AdminPlansPage() {
 
         try {
             await dispatch(deletePlan(planToDelete)).unwrap();
-            toast.success('Plan deleted successfully');
+            // toast.success('Plan deleted successfully');
             setDeleteDialogOpen(false);
             setPlanToDelete(null);
             dispatch(fetchPlans());
         } catch (err: any) {
             // Error message from API will include client count if plan is in use
-            toast.error(err || 'Failed to delete plan');
+            // toast.error(err || 'Failed to delete plan');
         }
     };
 

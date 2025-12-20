@@ -44,6 +44,7 @@ import {
 import { Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { ClientWithStats, CreateClientDTO } from '@/types/entities/client.types';
+import { getErrorMessage } from '@/lib/utils/error';
 
 export default function AdminClientsPage() {
     const dispatch = useAppDispatch();
@@ -67,7 +68,7 @@ export default function AdminClientsPage() {
 
     useEffect(() => {
         if (error) {
-            toast.error(error);
+            toast.error(getErrorMessage(error));
             dispatch(clearClientError());
         }
     }, [error, dispatch]);
@@ -79,7 +80,7 @@ export default function AdminClientsPage() {
             setCreateDialogOpen(false);
             dispatch(fetchClients());
         } catch (err: any) {
-            toast.error(err || 'Failed to create client');
+            toast.error(getErrorMessage(err, 'Failed to create client'));
         }
     };
 
@@ -100,7 +101,7 @@ export default function AdminClientsPage() {
             dispatch(fetchClients());
             dispatch(fetchPendingClients());
         } catch (err: any) {
-            toast.error(err || 'Failed to approve client');
+            toast.error(getErrorMessage(err, 'Failed to approve client'));
         }
     };
 
@@ -111,7 +112,7 @@ export default function AdminClientsPage() {
             dispatch(fetchClients());
             dispatch(fetchPendingClients());
         } catch (err: any) {
-            toast.error(err || 'Failed to reject client');
+            toast.error(getErrorMessage(err, 'Failed to reject client'));
         }
     };
 
@@ -121,7 +122,7 @@ export default function AdminClientsPage() {
             toast.success('Client reactivated successfully');
             dispatch(fetchClients());
         } catch (err: any) {
-            toast.error(err || 'Failed to reactivate client');
+            toast.error(getErrorMessage(err, 'Failed to reactivate client'));
         }
     };
 
@@ -131,7 +132,7 @@ export default function AdminClientsPage() {
             toast.success('Client deactivated successfully');
             dispatch(fetchClients());
         } catch (err: any) {
-            toast.error(err || 'Failed to deactivate client');
+            toast.error(getErrorMessage(err, 'Failed to deactivate client'));
         }
     };
 
@@ -151,7 +152,7 @@ export default function AdminClientsPage() {
             dispatch(fetchClients());
             dispatch(fetchPendingClients());
         } catch (err: any) {
-            toast.error(err || 'Failed to delete client');
+            toast.error(getErrorMessage(err, 'Failed to delete client'));
         }
     };
 
@@ -171,10 +172,10 @@ export default function AdminClientsPage() {
             <Tabs defaultValue="all" className="w-full">
                 <TabsList>
                     <TabsTrigger value="all">
-                        All Clients ({clients.length})
+                        All Clients ({clients?.length})
                     </TabsTrigger>
                     <TabsTrigger value="pending">
-                        Pending Approvals ({pendingClients.length})
+                        Pending Approvals ({pendingClients?.length})
                     </TabsTrigger>
                 </TabsList>
                 <TabsContent value="all" className="mt-6">

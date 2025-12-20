@@ -56,7 +56,7 @@ export function PlanClientsDialog({ plan, open, onOpenChange }: PlanClientsDialo
                         <div className="flex items-center justify-center py-8">
                             <p className="text-gray-500">Loading clients...</p>
                         </div>
-                    ) : clients.length === 0 ? (
+                    ) : clients?.length === 0 ? (
                         <div className="text-center py-8">
                             <p className="text-gray-500">No clients are using this plan yet.</p>
                         </div>
@@ -71,7 +71,7 @@ export function PlanClientsDialog({ plan, open, onOpenChange }: PlanClientsDialo
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    {clients.map((client) => (
+                                    {clients?.map((client) => (
                                         <TableRow key={client.id}>
                                             <TableCell className="font-medium">{client.name}</TableCell>
                                             <TableCell>
@@ -90,7 +90,7 @@ export function PlanClientsDialog({ plan, open, onOpenChange }: PlanClientsDialo
                         </div>
                     )}
                     
-                    {!loading && clients.length > 0 && (
+                    {!loading && clients?.length > 0 && (
                         <div className="mt-4 text-sm text-gray-600">
                             Total: {clients.length} client{clients.length !== 1 ? 's' : ''}
                         </div>

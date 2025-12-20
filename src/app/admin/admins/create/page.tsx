@@ -32,6 +32,7 @@ import { ROUTES } from '@/lib/constants/routes';
 import { AdminRole } from '@/types/enums/admin-role.enum';
 import { useAppDispatch } from '@/store/hooks';
 import { createAdmin } from '@/store/slices/admin.slice';
+import { getErrorMessage } from '@/lib/utils/error';
 
 // Define schema locally for now, or move to validations file
 const createAdminSchema = z.object({
@@ -64,7 +65,7 @@ export default function CreateAdminPage() {
       router.push(ROUTES.ADMIN.ADMINS);
     } catch (error: any) {
       console.error('Failed to create admin:', error);
-      toast.error(error || 'Failed to create admin');
+      toast.error(getErrorMessage(error, 'Failed to create admin'));
     } finally {
       setIsLoading(false);
     }

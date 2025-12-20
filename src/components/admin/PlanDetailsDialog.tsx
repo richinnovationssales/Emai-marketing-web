@@ -79,14 +79,14 @@ export function PlanDetailsDialog({ plan, open, onOpenChange }: PlanDetailsDialo
                                 <Calendar className="h-5 w-5 text-gray-400 mt-0.5" />
                                 <div className="flex-1">
                                     <p className="text-sm text-gray-600">Created</p>
-                                    <p><FormattedDate date={plan.createdAt} formatStr="PPP" /></p>
+                                    <div><FormattedDate date={plan.createdAt} formatStr="PPP" /></div>
                                 </div>
                             </div>
                             <div className="flex items-start space-x-3">
                                 <Calendar className="h-5 w-5 text-gray-400 mt-0.5" />
                                 <div className="flex-1">
                                     <p className="text-sm text-gray-600">Last Updated</p>
-                                    <p><FormattedDate date={plan.updatedAt} formatStr="PPP" /></p>
+                                    <div><FormattedDate date={plan.updatedAt} formatStr="PPP" /></div>
                                 </div>
                             </div>
                         </div>

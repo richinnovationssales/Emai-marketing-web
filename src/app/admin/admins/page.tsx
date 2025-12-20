@@ -35,6 +35,7 @@ import {
   selectAdminLoading,
   selectAdminInitialized,
 } from '@/store/slices/admin.slice';
+import { getErrorMessage } from '@/lib/utils/error';
 
 export default function AdminsPage() {
   const dispatch = useAppDispatch();
@@ -59,7 +60,7 @@ export default function AdminsPage() {
         toast.success('Admin deleted successfully');
       } catch (error: any) {
         console.error('Failed to delete admin:', error);
-        toast.error(error || 'Failed to delete admin');
+        toast.error(getErrorMessage(error, 'Failed to delete admin'));
       }
     }
   };
@@ -70,7 +71,7 @@ export default function AdminsPage() {
       toast.success(`Admin ${!currentStatus ? 'activated' : 'deactivated'} successfully`);
     } catch (error: any) {
       console.error('Failed to update admin status:', error);
-      toast.error(error || 'Failed to update admin status');
+      toast.error(getErrorMessage(error, 'Failed to update admin status'));
     }
   };
 

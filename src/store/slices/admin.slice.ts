@@ -246,7 +246,9 @@ export const fetchPlans = createAsyncThunk(
     'admin/fetchPlans',
     async (_, { rejectWithValue }) => {
         try {
-            return await planService.getAll();
+            const plans = await planService.getAll();
+            console.log({ plans });
+            return plans;
         } catch (error: any) {
             return rejectWithValue(error.response?.data?.message || 'Failed to fetch plans');
         }
@@ -592,6 +594,7 @@ const adminSlice = createSlice({
                 state.planError = null;
             })
             .addCase(fetchPlans.fulfilled, (state, action: PayloadAction<Plan[]>) => {
+                console.log({ plans: action.payload });
                 state.planLoading = false;
                 state.plans = action.payload;
                 state.planInitialized = true;

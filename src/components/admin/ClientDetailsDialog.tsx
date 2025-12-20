@@ -65,7 +65,7 @@ export function ClientDetailsDialog({ client, open, onOpenChange }: ClientDetail
                                 <Calendar className="h-5 w-5 text-gray-400 mt-0.5" />
                                 <div>
                                     <p className="text-sm text-gray-600">Created</p>
-                                    <p><FormattedDate date={client.createdAt} formatStr="PPP" /></p>
+                                    <div><FormattedDate date={client.createdAt} formatStr="PPP" /></div>
                                 </div>
                             </div>
                         </div>

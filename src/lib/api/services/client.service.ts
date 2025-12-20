@@ -34,6 +34,11 @@ export const clientService = {
         return data.data;
     },
 
+    // Delete client
+    deleteClient: async (id: string): Promise<void> => {
+        await apiClient.delete(API_ENDPOINTS.CLIENTS.BY_ID(id));
+    },
+
     // Approve client
     approve: async (id: string): Promise<Client> => {
         const { data } = await apiClient.patch<ApiResponse<Client>>(API_ENDPOINTS.CLIENTS.APPROVE(id));

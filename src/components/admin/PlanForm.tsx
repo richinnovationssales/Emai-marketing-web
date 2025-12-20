@@ -27,7 +27,7 @@ type PlanFormValues = z.infer<typeof planFormSchema>;
 
 interface PlanFormProps {
     plan?: Plan;
-    onSubmit: (data: CreatePlanDTO | UpdatePlanDTO) => void;
+    onSubmit: (data: CreatePlanDTO | UpdatePlanDTO) => void | Promise<void>;
     loading?: boolean;
     onCancel?: () => void;
 }

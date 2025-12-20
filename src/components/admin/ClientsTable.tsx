@@ -41,7 +41,7 @@ export function ClientsTable({
 }: ClientsTableProps) {
     const [searchTerm, setSearchTerm] = useState('');
 
-    const filteredClients = clients.filter((client) =>
+    const filteredClients = clients?.filter((client) =>
         client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         client.plan.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
@@ -73,22 +73,22 @@ export function ClientsTable({
                             <TableHead>Name</TableHead>
                             <TableHead>Plan</TableHead>
                             <TableHead>Status</TableHead>
-                            <TableHead>Users</TableHead>
-                            <TableHead>Contacts</TableHead>
-                            <TableHead>Campaigns</TableHead>
+                            {/* <TableHead>Users</TableHead> */}
+                            {/* <TableHead>Contacts</TableHead> */}
+                            {/* <TableHead>Campaigns</TableHead> */}
                             <TableHead>Created</TableHead>
                             <TableHead className="text-right">Actions</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {filteredClients.length === 0 ? (
+                        {filteredClients?.length === 0 ? (
                             <TableRow>
                                 <TableCell colSpan={8} className="text-center py-8 text-gray-500">
                                     {searchTerm ? 'No clients found matching your search.' : 'No clients yet.'}
                                 </TableCell>
                             </TableRow>
                         ) : (
-                            filteredClients.map((client) => (
+                            filteredClients?.map((client) => (
                                 <TableRow key={client.id}>
                                     <TableCell className="font-medium">{client.name}</TableCell>
                                     <TableCell>
@@ -105,9 +105,9 @@ export function ClientsTable({
                                             isActive={client.isActive} 
                                         />
                                     </TableCell>
-                                    <TableCell>{client._count.users}</TableCell>
-                                    <TableCell>{client._count.contacts.toLocaleString()}</TableCell>
-                                    <TableCell>{client._count.campaigns}</TableCell>
+                                    {/* <TableCell>{client?._count?.users}</TableCell> */}
+                                    {/* <TableCell>{client?._count?.contacts.toLocaleString()}</TableCell> */}
+                                    {/* <TableCell>{client?._count?.campaigns}</TableCell> */}
                                     <TableCell>
                                         <FormattedDate date={client.createdAt} />
                                     </TableCell>
