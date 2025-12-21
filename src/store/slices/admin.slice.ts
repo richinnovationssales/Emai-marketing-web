@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction, createAsyncThunk } from '@reduxjs/toolkit';
 import { Admin } from '@/types/entities/admin.types';
-import { Client, ClientWithStats, CreateClientDTO, UpdateClientDTO, ClientAnalytics } from '@/types/entities/client.types';
+import { Client, ClientWithStats, ClientDetails, CreateClientDTO, UpdateClientDTO, ClientAnalytics, CustomFieldDefinition } from '@/types/entities/client.types';
 import { Plan, CreatePlanDTO, UpdatePlanDTO } from '@/types/entities/plan.types';
 import { adminService } from '@/lib/api/services/admin.service';
 import { clientService } from '@/lib/api/services/client.service';
@@ -17,10 +17,15 @@ interface AdminState {
     clients: ClientWithStats[];
     pendingClients: ClientWithStats[];
     selectedClient: ClientWithStats | null;
+    selectedClientDetails: ClientDetails | null;
     clientAnalytics: ClientAnalytics | null;
     clientLoading: boolean;
     clientError: string | null;
     clientInitialized: boolean;
+
+    // Custom field builder
+    customFieldsBuilder: CustomFieldDefinition[];
+    useDefaultFields: boolean;
 
     // Plan management
     plans: Plan[];
@@ -42,10 +47,15 @@ const initialState: AdminState = {
     clients: [],
     pendingClients: [],
     selectedClient: null,
+    selectedClientDetails: null,
     clientAnalytics: null,
     clientLoading: false,
     clientError: null,
     clientInitialized: false,
+
+    // Custom field builder state
+    customFieldsBuilder: [],
+    useDefaultFields: true,
 
     // Plan state
     plans: [],
@@ -147,6 +157,17 @@ export const fetchClientById = createAsyncThunk(
             return await clientService.getById(id);
         } catch (error: any) {
             return rejectWithValue(error.response?.data?.message || 'Failed to fetch client');
+        }
+    }
+);
+
+export const fetchClientDetails = createAsyncThunk(
+    'admin/fetchClientDetails',
+    async (id: string, { rejectWithValue }) => {
+        try {
+            return await clientService.getDetails(id);
+        } catch (error: any) {
+            return rejectWithValue(error.response?.data?.message || 'Failed to fetch client details');
         }
     }
 );
@@ -326,6 +347,7 @@ const adminSlice = createSlice({
         },
         clearSelectedClient: (state) => {
             state.selectedClient = null;
+            state.selectedClientDetails = null;
             state.clientAnalytics = null;
         },
         clearSelectedPlan: (state) => {
@@ -334,6 +356,38 @@ const adminSlice = createSlice({
         },
         resetAdminState: (state) => {
             Object.assign(state, initialState);
+        },
+        // Custom field builder actions
+        addCustomField: (state, action: PayloadAction<CustomFieldDefinition>) => {
+            state.customFieldsBuilder.push(action.payload);
+        },
+        updateCustomField: (state, action: PayloadAction<{ index: number; field: CustomFieldDefinition }>) => {
+            state.customFieldsBuilder[action.payload.index] = action.payload.field;
+        },
+        removeCustomField: (state, action: PayloadAction<number>) => {
+            state.customFieldsBuilder.splice(action.payload, 1);
+        },
+        reorderCustomField: (state, action: PayloadAction<{ fromIndex: number; toIndex: number }>) => {
+            const { fromIndex, toIndex } = action.payload;
+            const [movedField] = state.customFieldsBuilder.splice(fromIndex, 1);
+            state.customFieldsBuilder.splice(toIndex, 0, movedField);
+            // Update display order
+            state.customFieldsBuilder.forEach((field, index) => {
+                field.displayOrder = index;
+            });
+        },
+        setUseDefaultFields: (state, action: PayloadAction<boolean>) => {
+            state.useDefaultFields = action.payload;
+            if (action.payload) {
+                state.customFieldsBuilder = [];
+            }
+        },
+        clearCustomFieldsBuilder: (state) => {
+            state.customFieldsBuilder = [];
+            state.useDefaultFields = true;
+        },
+        setCustomFields: (state, action: PayloadAction<CustomFieldDefinition[]>) => {
+            state.customFieldsBuilder = action.payload;
         },
     },
     extraReducers: (builder) => {
@@ -455,6 +509,20 @@ const adminSlice = createSlice({
                 state.selectedClient = action.payload;
             })
             .addCase(fetchClientById.rejected, (state, action) => {
+                state.clientLoading = false;
+                state.clientError = action.payload as string;
+            });
+
+        builder
+            .addCase(fetchClientDetails.pending, (state) => {
+                state.clientLoading = true;
+                state.clientError = null;
+            })
+            .addCase(fetchClientDetails.fulfilled, (state, action: PayloadAction<ClientDetails>) => {
+                state.clientLoading = false;
+                state.selectedClientDetails = action.payload;
+            })
+            .addCase(fetchClientDetails.rejected, (state, action) => {
                 state.clientLoading = false;
                 state.clientError = action.payload as string;
             });
@@ -685,7 +753,14 @@ export const {
     clearPlanError,
     clearSelectedClient,
     clearSelectedPlan,
-    resetAdminState
+    resetAdminState,
+    addCustomField,
+    updateCustomField,
+    removeCustomField,
+    reorderCustomField,
+    setUseDefaultFields,
+    clearCustomFieldsBuilder,
+    setCustomFields
 } = adminSlice.actions;
 
 export default adminSlice.reducer;
@@ -703,6 +778,7 @@ export const selectAdminById = (id: string) => (state: { admin: AdminState }) =>
 export const selectClients = (state: { admin: AdminState }) => state.admin.clients;
 export const selectPendingClients = (state: { admin: AdminState }) => state.admin.pendingClients;
 export const selectSelectedClient = (state: { admin: AdminState }) => state.admin.selectedClient;
+export const selectSelectedClientDetails = (state: { admin: AdminState }) => state.admin.selectedClientDetails;
 export const selectClientAnalytics = (state: { admin: AdminState }) => state.admin.clientAnalytics;
 export const selectClientLoading = (state: { admin: AdminState }) => state.admin.clientLoading;
 export const selectClientError = (state: { admin: AdminState }) => state.admin.clientError;
@@ -719,4 +795,9 @@ export const selectPlanError = (state: { admin: AdminState }) => state.admin.pla
 export const selectPlanInitialized = (state: { admin: AdminState }) => state.admin.planInitialized;
 export const selectPlanById = (id: string) => (state: { admin: AdminState }) =>
     state.admin.plans.find(plan => plan.id === id);
+
+// Custom field builder selectors
+export const selectCustomFieldsBuilder = (state: { admin: AdminState }) => state.admin.customFieldsBuilder;
+export const selectUseDefaultFields = (state: { admin: AdminState }) => state.admin.useDefaultFields;
+export const selectCustomFieldsBuilderCount = (state: { admin: AdminState }) => state.admin.customFieldsBuilder.length;
 

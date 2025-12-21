@@ -1,6 +1,6 @@
 import apiClient from '../client';
 import { API_ENDPOINTS } from '../endpoints';
-import { Client, CreateClientDTO, UpdateClientDTO, ClientWithStats, ClientAnalytics, OnboardClientDTO } from '@/types/entities/client.types';
+import { Client, CreateClientDTO, UpdateClientDTO, ClientWithStats, ClientDetails, ClientAnalytics, OnboardClientDTO } from '@/types/entities/client.types';
 import { ApiResponse } from '@/types/api/response.types';
 
 export const clientService = {
@@ -16,9 +16,15 @@ export const clientService = {
         return data.data;
     },
 
-    // Get client by ID
+    // Get client by ID (basic info with stats)
     getById: async (id: string): Promise<ClientWithStats> => {
         const { data } = await apiClient.get<ApiResponse<ClientWithStats>>(API_ENDPOINTS.CLIENTS.BY_ID(id));
+        return data.data;
+    },
+
+    // Get client details (extended with users, contacts, groups, custom fields)
+    getDetails: async (id: string): Promise<ClientDetails> => {
+        const { data } = await apiClient.get<ApiResponse<ClientDetails>>(API_ENDPOINTS.CLIENTS.BY_ID(id));
         return data.data;
     },
 

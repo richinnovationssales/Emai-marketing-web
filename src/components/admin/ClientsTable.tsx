@@ -89,7 +89,11 @@ export function ClientsTable({
                             </TableRow>
                         ) : (
                             filteredClients?.map((client) => (
-                                <TableRow key={client.id}>
+                                <TableRow 
+                                    key={client.id} 
+                                    className="cursor-pointer hover:bg-muted/50"
+                                    onClick={() => onView(client)}
+                                >
                                     <TableCell className="font-medium">{client.name}</TableCell>
                                     <TableCell>
                                         <div>
@@ -111,7 +115,7 @@ export function ClientsTable({
                                     <TableCell>
                                         <FormattedDate date={client.createdAt} />
                                     </TableCell>
-                                    <TableCell className="text-right">
+                                    <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                                         <ClientActionsMenu
                                             client={client}
                                             onView={onView}

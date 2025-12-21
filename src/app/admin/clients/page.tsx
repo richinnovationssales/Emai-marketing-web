@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import {
     fetchClients,
@@ -18,10 +19,10 @@ import {
     selectClientLoading,
     selectClientError,
     clearClientError,
+    clearCustomFieldsBuilder,
 } from '@/store/slices/admin.slice';
 import { ClientsTable } from '@/components/admin/ClientsTable';
 import { ClientForm } from '@/components/admin/ClientForm';
-import { ClientDetailsDialog } from '@/components/admin/ClientDetailsDialog';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
@@ -48,6 +49,7 @@ import { getErrorMessage } from '@/lib/utils/error';
 
 export default function AdminClientsPage() {
     const dispatch = useAppDispatch();
+    const router = useRouter();
     const clients = useAppSelector(selectClients);
     const pendingClients = useAppSelector(selectPendingClients);
     const plans = useAppSelector(selectPlans);
@@ -55,8 +57,6 @@ export default function AdminClientsPage() {
     const error = useAppSelector(selectClientError);
 
     const [createDialogOpen, setCreateDialogOpen] = useState(false);
-    const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
-    const [selectedClient, setSelectedClient] = useState<ClientWithStats | null>(null);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [clientToDelete, setClientToDelete] = useState<string | null>(null);
 
@@ -78,6 +78,7 @@ export default function AdminClientsPage() {
             await dispatch(createClient(data)).unwrap();
             toast.success('Client created successfully');
             setCreateDialogOpen(false);
+            dispatch(clearCustomFieldsBuilder());
             dispatch(fetchClients());
         } catch (err: any) {
             toast.error(getErrorMessage(err, 'Failed to create client'));
@@ -85,8 +86,7 @@ export default function AdminClientsPage() {
     };
 
     const handleViewClient = (client: ClientWithStats) => {
-        setSelectedClient(client);
-        setDetailsDialogOpen(true);
+        router.push(`/admin/clients/${client.id}`);
     };
 
     const handleEditClient = (client: ClientWithStats) => {
@@ -220,13 +220,6 @@ export default function AdminClientsPage() {
                     />
                 </DialogContent>
             </Dialog>
-
-            {/* Client Details Dialog */}
-            <ClientDetailsDialog
-                client={selectedClient}
-                open={detailsDialogOpen}
-                onOpenChange={setDetailsDialogOpen}
-            />
 
             {/* Delete Confirmation Dialog */}
             <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>

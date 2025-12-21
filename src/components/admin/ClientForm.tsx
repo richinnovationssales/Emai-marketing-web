@@ -23,6 +23,9 @@ import {
 } from '@/components/ui/select';
 import { Plan } from '@/types/entities/plan.types';
 import { CreateClientDTO } from '@/types/entities/client.types';
+import { CustomFieldBuilder } from './CustomFieldBuilder';
+import { useAppSelector } from '@/store/hooks';
+import { selectCustomFieldsBuilder, selectUseDefaultFields } from '@/store/slices/admin.slice';
 
 const clientFormSchema = z.object({
     name: z.string().min(1, 'Client name is required').max(255, 'Name too long'),
@@ -44,6 +47,9 @@ interface ClientFormProps {
 }
 
 export function ClientForm({ plans, onSubmit, loading }: ClientFormProps) {
+    const customFields = useAppSelector(selectCustomFieldsBuilder);
+    const useDefaultFields = useAppSelector(selectUseDefaultFields);
+    
     const form = useForm<ClientFormValues>({
         resolver: zodResolver(clientFormSchema),
         defaultValues: {
@@ -55,7 +61,12 @@ export function ClientForm({ plans, onSubmit, loading }: ClientFormProps) {
     });
 
     const handleSubmit = (values: ClientFormValues) => {
-        onSubmit(values);
+        const submitData: CreateClientDTO = {
+            ...values,
+            // Only include customFields if not using defaults
+            customFields: useDefaultFields ? undefined : (customFields.length > 0 ? customFields : undefined),
+        };
+        onSubmit(submitData);
     };
 
     return (
@@ -139,6 +150,9 @@ export function ClientForm({ plans, onSubmit, loading }: ClientFormProps) {
                         </FormItem>
                     )}
                 />
+
+                {/* Custom Fields Builder */}
+                <CustomFieldBuilder />
 
                 <div className="flex justify-end space-x-2">
                     <Button type="submit" disabled={loading}>

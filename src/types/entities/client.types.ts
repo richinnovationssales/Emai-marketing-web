@@ -11,16 +11,39 @@ export enum CustomFieldType {
     MULTISELECT = "MULTISELECT"
 }
 
+export enum UserRole {
+    CLIENT_SUPER_ADMIN = "CLIENT_SUPER_ADMIN",
+    CLIENT_ADMIN = "CLIENT_ADMIN",
+    CLIENT_USER = "CLIENT_USER"
+}
+
 export interface CustomFieldDefinition {
     name: string;
     fieldKey: string;
     type: CustomFieldType;
     isRequired?: boolean;
     defaultValue?: string;
-    options?: string;
+    options?: string; // JSON string array for SELECT/MULTISELECT
     validationRegex?: string;
     helpText?: string;
     displayOrder?: number;
+}
+
+export interface CustomField {
+    id: string;
+    clientId: string;
+    name: string;
+    fieldKey: string;
+    type: CustomFieldType;
+    isRequired: boolean;
+    defaultValue: string | null;
+    options: string | null; // JSON string array for SELECT/MULTISELECT
+    validationRegex: string | null;
+    helpText: string | null;
+    displayOrder: number;
+    isActive: boolean;
+    createdAt: string;
+    updatedAt: string;
 }
 
 export interface Plan {
@@ -28,6 +51,33 @@ export interface Plan {
     name: string;
     emailLimit: number;
     price: number;
+    createdAt: string;
+    updatedAt: string;
+}
+
+export interface UserSanitized {
+    id: string;
+    email: string;
+    role: UserRole;
+    clientId: string;
+    createdAt: string;
+    updatedAt: string;
+}
+
+export interface Contact {
+    id: string;
+    email: string;
+    firstName: string | null;
+    lastName: string | null;
+    clientId: string;
+    createdAt: string;
+    updatedAt: string;
+}
+
+export interface Group {
+    id: string;
+    name: string;
+    clientId: string;
     createdAt: string;
     updatedAt: string;
 }
@@ -44,6 +94,17 @@ export interface Client {
     remainingMessages: number | null;
     createdAt: string;
     updatedAt: string;
+}
+
+export interface ClientDetails extends Client {
+    users: UserSanitized[];
+    usersCount: number;
+    contacts: Contact[];
+    contactsCount: number;
+    groups: Group[];
+    groupsCount: number;
+    customFields: CustomField[];
+    customFieldsCount: number;
 }
 
 export interface CreateClientDTO {

@@ -121,28 +121,28 @@ export function ClientDetailsDialog({ client, open, onOpenChange }: ClientDetail
                                     <Users className="h-5 w-5 text-blue-600" />
                                     <span className="text-sm text-gray-600">Users</span>
                                 </div>
-                                <p className="text-2xl font-bold text-blue-600">{client._count.users}</p>
+                                <p className="text-2xl font-bold text-blue-600">{client?._count?.users}</p>
                             </div>
                             <div className="bg-green-50 rounded-lg p-4">
                                 <div className="flex items-center space-x-2 mb-2">
                                     <Mail className="h-5 w-5 text-green-600" />
                                     <span className="text-sm text-gray-600">Contacts</span>
                                 </div>
-                                <p className="text-2xl font-bold text-green-600">{client._count.contacts.toLocaleString()}</p>
+                                <p className="text-2xl font-bold text-green-600">{client?._count?.contacts.toLocaleString()}</p>
                             </div>
                             <div className="bg-purple-50 rounded-lg p-4">
                                 <div className="flex items-center space-x-2 mb-2">
                                     <Calendar className="h-5 w-5 text-purple-600" />
                                     <span className="text-sm text-gray-600">Campaigns</span>
                                 </div>
-                                <p className="text-2xl font-bold text-purple-600">{client._count.campaigns}</p>
+                                <p className="text-2xl font-bold text-purple-600">{client?._count?.campaigns}</p>
                             </div>
                             <div className="bg-orange-50 rounded-lg p-4">
                                 <div className="flex items-center space-x-2 mb-2">
                                     <Layers className="h-5 w-5 text-orange-600" />
                                     <span className="text-sm text-gray-600">Groups</span>
                                 </div>
-                                <p className="text-2xl font-bold text-orange-600">{client._count.groups}</p>
+                                <p className="text-2xl font-bold text-orange-600">{client?._count?.groups}</p>
                             </div>
                         </div>
                     </div>
