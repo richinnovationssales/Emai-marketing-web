@@ -42,8 +42,8 @@ export function ClientsTable({
     const [searchTerm, setSearchTerm] = useState('');
 
     const filteredClients = clients?.filter((client) =>
-        client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        client.plan.name.toLowerCase().includes(searchTerm.toLowerCase())
+        client?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        client.plan?.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     if (loading) {
