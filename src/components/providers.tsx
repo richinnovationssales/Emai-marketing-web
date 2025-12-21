@@ -7,6 +7,7 @@ import { Toaster } from 'sonner';
 import { useState, useEffect } from 'react';
 import { hydrateAuth } from '@/store/slices/auth.slice';
 import { ClientOnly } from '@/components/ui/client-only';
+import { ThemeProvider } from "@/components/theme-provider";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
@@ -29,8 +30,15 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <Provider store={store}>
       <QueryClientProvider client={queryClient}>
-        {children}
-        <Toaster position="top-right" richColors />
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          {children}
+          <Toaster position="top-right" richColors />
+        </ThemeProvider>
       </QueryClientProvider>
     </Provider>
   );
