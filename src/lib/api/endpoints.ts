@@ -19,7 +19,13 @@
   },
   GROUPS: '/groups',
   TEMPLATES: '/templates',
-  USERS: '/users',
+  USERS: {
+    BASE: '/users',
+    CLIENT_ADMINS: '/users/client-admins',
+    CLIENT_USERS: '/users/client-users',
+    BY_ID: (id: string) => `/users/${id}`,
+    ME: '/users/me/profile',
+  },
   EMPLOYEES: '/employees',
   PLANS: {
     BASE: '/admin/plans',

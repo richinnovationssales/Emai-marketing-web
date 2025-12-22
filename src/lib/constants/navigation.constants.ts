@@ -68,8 +68,7 @@ export const ADMIN_NAV_ITEMS: NavigationItem[] = [
     },
 ];
 
-// Client Navigation
-export const CLIENT_NAV_ITEMS: NavigationItem[] = [
+export const CLIENT_SUPER_ADMIN_NAV_ITEMS: NavigationItem[] = [
     {
         title: 'Dashboard',
         href: ROUTES.CLIENT.DASHBOARD,
@@ -101,9 +100,96 @@ export const CLIENT_NAV_ITEMS: NavigationItem[] = [
         icon: BarChart,
     },
     {
-        title: 'Team',
-        href: ROUTES.CLIENT.USERS,
+        title: 'Admins',
+        href: ROUTES.CLIENT.ADMINS,
         icon: UserCog,
+    },
+    {
+        title: 'Employees',
+        href: ROUTES.CLIENT.EMPLOYEES,
+        icon: Users,
+    },
+    {
+        title: 'Settings',
+        href: ROUTES.CLIENT.SETTINGS,
+        icon: Settings,
+    },
+];
+
+export const CLIENT_ADMIN_NAV_ITEMS: NavigationItem[] = [
+    {
+        title: 'Dashboard',
+        href: ROUTES.CLIENT.DASHBOARD,
+        icon: LayoutDashboard,
+    },
+    {
+        title: 'Contacts',
+        href: ROUTES.CLIENT.CONTACTS,
+        icon: Users,
+    },
+    {
+        title: 'Campaigns',
+        href: ROUTES.CLIENT.CAMPAIGNS,
+        icon: Mail,
+    },
+    {
+        title: 'Templates',
+        href: ROUTES.CLIENT.TEMPLATES,
+        icon: FileText,
+    },
+    {
+        title: 'Groups',
+        href: ROUTES.CLIENT.GROUPS,
+        icon: Layers,
+    },
+    {
+        title: 'Analytics',
+        href: ROUTES.CLIENT.ANALYTICS,
+        icon: BarChart,
+    },
+    {
+        title: 'Employees',
+        href: ROUTES.CLIENT.EMPLOYEES,
+        icon: Users,
+    },
+    {
+        title: 'Settings',
+        href: ROUTES.CLIENT.SETTINGS,
+        icon: Settings,
+    },
+];
+
+// Client User Navigation (no user management)
+export const CLIENT_USER_NAV_ITEMS: NavigationItem[] = [
+    {
+        title: 'Dashboard',
+        href: ROUTES.CLIENT.DASHBOARD,
+        icon: LayoutDashboard,
+    },
+    {
+        title: 'Contacts',
+        href: ROUTES.CLIENT.CONTACTS,
+        icon: Users,
+    },
+    {
+        title: 'Campaigns',
+        href: ROUTES.CLIENT.CAMPAIGNS,
+        icon: Mail,
+    },
+    {
+        title: 'Templates',
+        href: ROUTES.CLIENT.TEMPLATES,
+        icon: FileText,
+    },
+    {
+        title: 'Groups',
+        href: ROUTES.CLIENT.GROUPS,
+        icon: Layers,
+    },
+    {
+        title: 'Analytics',
+        href: ROUTES.CLIENT.ANALYTICS,
+        icon: BarChart,
     },
     {
         title: 'Settings',
@@ -126,14 +212,19 @@ export function getNavigationByRole(role: AdminRole | UserRole | string): Naviga
             return ADMIN_NAV_ITEMS;
 
         case UserRole.CLIENT_SUPER_ADMIN:
-        case UserRole.CLIENT_ADMIN:
-        case UserRole.CLIENT_USER:
         case 'CLIENT_SUPER_ADMIN':
+            return CLIENT_SUPER_ADMIN_NAV_ITEMS;
+
+        case UserRole.CLIENT_ADMIN:
         case 'CLIENT_ADMIN':
+            return CLIENT_ADMIN_NAV_ITEMS;
+
+        case UserRole.CLIENT_USER:
         case 'CLIENT_USER':
-            return CLIENT_NAV_ITEMS;
+            return CLIENT_USER_NAV_ITEMS;
 
         default:
             return [];
     }
 }
+
