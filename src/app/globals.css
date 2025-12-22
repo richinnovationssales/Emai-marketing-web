@@ -46,6 +46,13 @@
   --auth-gradient-end: 254 75% 55%;
   --auth-card-bg: 0 0% 100% / 0.9;
   --auth-card-border: 223 60% 70% / 0.3;
+
+  /* Client Portal Theme - Light Mode */
+  --client-primary: 160 84% 39%;
+  --client-primary-foreground: 0 0% 100%;
+  --client-accent: 168 76% 42%;
+  --client-sidebar-bg: 222 47% 11%;
+  --client-sidebar-border: 217 33% 17%;
 }
 
 .dark {
