@@ -6,6 +6,9 @@ export enum CustomFieldType {
     DATE = 'DATE',
     BOOLEAN = 'BOOLEAN',
     URL = 'URL',
+    TEXTAREA = 'TEXTAREA',
+    SELECT = 'SELECT',
+    MULTISELECT = 'MULTISELECT',
 }
 
 export const CustomFieldTypeLabels: Record<CustomFieldType, string> = {
@@ -16,4 +19,7 @@ export const CustomFieldTypeLabels: Record<CustomFieldType, string> = {
     [CustomFieldType.DATE]: 'Date',
     [CustomFieldType.BOOLEAN]: 'Boolean',
     [CustomFieldType.URL]: 'URL',
+    [CustomFieldType.TEXTAREA]: 'Text Area',
+    [CustomFieldType.SELECT]: 'Select',
+    [CustomFieldType.MULTISELECT]: 'Multi-Select',
 };
