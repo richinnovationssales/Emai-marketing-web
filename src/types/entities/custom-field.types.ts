@@ -9,6 +9,8 @@ export interface CustomField {
     isRequired: boolean;
     isActive: boolean;
     clientId: string;
+    options?: string[] | null;
+    helpText?: string | null;
     createdAt: string;
     updatedAt: string;
 }

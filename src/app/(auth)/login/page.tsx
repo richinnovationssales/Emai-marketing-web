@@ -1,3 +1,4 @@
+// Login Page
 export default function LoginPage() {
   return (
     <div className="rounded-lg bg-white dark:bg-gray-800 p-8 shadow-lg">

@@ -16,6 +16,13 @@ export interface PaginatedResponse<T> {
     message?: string;
 }
 
+export interface CursorPaginatedResponse<T> {
+    success: boolean;
+    data: T[];
+    nextCursor: string | null;
+    message?: string;
+}
+
 export interface ApiErrorResponse {
     success: false;
     message: string;

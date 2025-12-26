@@ -1,31 +1,33 @@
-﻿import apiClient  from '../client';
-import { API_ENDPOINTS } from '../endpoints';
+﻿import apiClient from '../client';
 import { CustomField, CreateCustomFieldData, UpdateCustomFieldData } from '@/types/entities/custom-field.types';
-import { ApiResponse, PaginatedResponse } from '@/types/api/response.types';
+import { ApiResponse } from '@/types/api/response.types';
+
+const BASE_URL = '/custom-fields';
 
 export const customFieldService = {
-  getAll: async (params?: any): Promise<PaginatedResponse<CustomField>> => {
-    const response = await apiClient.get(API_ENDPOINTS.CUSTOM_FIELDS, { params });
+  getAll: async (params?: { includeInactive?: boolean }): Promise<ApiResponse<CustomField[]>> => {
+    // API doc says GET /api/custom-fields
+    const response = await apiClient.get<ApiResponse<CustomField[]>>(BASE_URL, { params });
     return response.data;
   },
 
   getById: async (id: string): Promise<ApiResponse<CustomField>> => {
-    const response = await apiClient.get(`${API_ENDPOINTS.CUSTOM_FIELDS}/${id}`);
+    const response = await apiClient.get(`${BASE_URL}/${id}`);
     return response.data;
   },
 
   create: async (data: CreateCustomFieldData): Promise<ApiResponse<CustomField>> => {
-    const response = await apiClient.post(API_ENDPOINTS.CUSTOM_FIELDS, data);
+    const response = await apiClient.post(BASE_URL, data);
     return response.data;
   },
 
   update: async (id: string, data: UpdateCustomFieldData): Promise<ApiResponse<CustomField>> => {
-    const response = await apiClient.put(`${API_ENDPOINTS.CUSTOM_FIELDS}/${id}`, data);
+    const response = await apiClient.put(`${BASE_URL}/${id}`, data);
     return response.data;
   },
 
   delete: async (id: string): Promise<ApiResponse<void>> => {
-    const response = await apiClient.delete(`${API_ENDPOINTS.CUSTOM_FIELDS}/${id}`);
+    const response = await apiClient.delete(`${BASE_URL}/${id}`);
     return response.data;
   },
 };

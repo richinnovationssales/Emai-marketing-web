@@ -7,17 +7,21 @@ export interface Contact {
     isActive: boolean;
     isUnsubscribed: boolean;
     clientId: string;
-    customFieldValues?: Record<string, any>;
+    customFieldValues?: Record<string, any>; // Deprecated in favor of customFields? API doc says customFields.
+    // reconciling with doc: "customFields?: Record<string, CustomFieldValue>;"
+    customFields?: Record<string, any>;
+    groupId?: string;
     createdAt: string;
     updatedAt: string;
 }
 
 export interface CreateContactDTO {
-    firstName: string;
-    lastName: string;
+    firstName?: string;
+    lastName?: string;
     email: string;
     phone?: string;
-    customFieldValues?: Record<string, any>;
+    customFields?: Record<string, any>;
+    groupId?: string;
 }
 
 export interface UpdateContactDTO {
@@ -26,15 +30,23 @@ export interface UpdateContactDTO {
     email?: string;
     phone?: string;
     isActive?: boolean;
-    customFieldValues?: Record<string, any>;
+    customFields?: Record<string, any>;
+    // groupId is NOT updatable via this endpoint per doc
 }
 
 export interface BulkImportResult {
-    imported: number;
+    success: number;
     failed: number;
-    errors: Array<{
-        row: number;
-        email: string;
-        message: string;
-    }>;
+    message: string;
+    // API doc says: { "success": 42, "failed": 3, "message": "..." }
+    // Previous type had "imported" and "errors" array. API doc v2 is simpler?
+    // Doc says: "Rows that fail validation are skipped... response tells you how many succeeded vs. failed."
+    // Let's stick to the v2 doc.
+}
+
+export interface ContactFilters {
+    cursor?: string;
+    limit?: number;
+    groupId?: string;
+    search?: string;
 }
