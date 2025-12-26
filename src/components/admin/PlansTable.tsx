@@ -35,7 +35,7 @@ export function PlansTable({
     const [searchTerm, setSearchTerm] = useState('');
 
     const filteredPlans = plans?.filter((plan) =>
-        plan.name.toLowerCase().includes(searchTerm.toLowerCase())
+        plan?.name?.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     if (loading) {

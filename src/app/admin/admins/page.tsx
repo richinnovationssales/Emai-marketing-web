@@ -121,7 +121,7 @@ export default function AdminsPage() {
                 <TableRow>
                   <TableHead>Email</TableHead>
                   <TableHead>Role</TableHead>
-                  <TableHead>Status</TableHead>
+                  {/* <TableHead>Status</TableHead> */}
                   <TableHead>Created At</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
@@ -146,14 +146,14 @@ export default function AdminsPage() {
                       <TableCell>
                         <Badge variant="outline">{admin.role}</Badge>
                       </TableCell>
-                      <TableCell>
+                      {/* <TableCell>
                          <Badge
                             variant={admin.isActive ? 'default' : 'destructive'}
                             className="capitalize"
                           >
                             {admin.isActive ? 'Active' : 'Inactive'}
                           </Badge>
-                      </TableCell>
+                      </TableCell> */}
                       <TableCell>
                         {mounted ? new Date(admin.createdAt).toLocaleDateString() : '—'}
                       </TableCell>
