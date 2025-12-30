@@ -50,7 +50,6 @@ export function ContactForm({ initialData, isEditMode = false }: ContactFormProp
         firstName: z.string().optional(),
         lastName: z.string().optional(),
         email: z.string().email('Invalid email address'),
-        phone: z.string().optional(),
         groupId: z.string().optional(),
     });
 
@@ -96,10 +95,7 @@ export function ContactForm({ initialData, isEditMode = false }: ContactFormProp
     const form = useForm<FormValues>({
         resolver: zodResolver(schema),
         defaultValues: {
-            firstName: initialData?.firstName || '',
-            lastName: initialData?.lastName || '',
             email: initialData?.email || '',
-            phone: initialData?.phone || '',
             groupId: initialData?.groupId || '',
             customFields: initialData?.customFields || initialData?.customFieldValues || {}, 
         },
@@ -141,7 +137,7 @@ export function ContactForm({ initialData, isEditMode = false }: ContactFormProp
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
                         {/* Standard Fields */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <FormField
+                            {/* <FormField
                                 control={form.control}
                                 name="firstName"
                                 render={({ field }) => (
@@ -166,7 +162,7 @@ export function ContactForm({ initialData, isEditMode = false }: ContactFormProp
                                         <FormMessage />
                                     </FormItem>
                                 )}
-                            />
+                            /> */}
                             <FormField
                                 control={form.control}
                                 name="email"
@@ -180,7 +176,7 @@ export function ContactForm({ initialData, isEditMode = false }: ContactFormProp
                                     </FormItem>
                                 )}
                             />
-                            <FormField
+                            {/* <FormField
                                 control={form.control}
                                 name="phone"
                                 render={({ field }) => (
@@ -192,7 +188,7 @@ export function ContactForm({ initialData, isEditMode = false }: ContactFormProp
                                         <FormMessage />
                                     </FormItem>
                                 )}
-                            />
+                            /> */}
                              {!isEditMode && (
                                 <FormField
                                     control={form.control}
