@@ -23,5 +23,15 @@ export interface UpdateTemplateDTO {
     isActive?: boolean;
 }
 
+export interface TemplateFilters {
+  search?: string;        // Search by name / subject
+  isActive?: boolean;     // Active / inactive templates
+  createdById?: string;   // Filter by creator
+  cursor?: string;        // Pagination cursor
+  limit?: number;         // Page size
+  sortBy?: 'createdAt' | 'updatedAt' | 'name';
+  sortOrder?: 'asc' | 'desc';
+}
+
 export type CreateTemplateData = CreateTemplateDTO;
 export type UpdateTemplateData = UpdateTemplateDTO;
