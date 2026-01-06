@@ -43,9 +43,22 @@ export const useAuth = () => {
     }, [dispatch]);
 
     const logout = useCallback(() => {
+        console.log('🚪 Logout initiated from hook');
+        
+        // Clear service-side (cookies + localStorage)
         authService.logout();
+        
+        // Clear Redux state
         dispatch(logoutAction());
+        
+        // Force navigation and refresh to clear everything
         router.push('/login');
+        router.refresh(); // Force middleware to re-run
+        
+        // Optional: Hard reload to ensure clean state
+        setTimeout(() => {
+            window.location.href = '/login';
+        }, 100);
     }, [dispatch, router]);
 
     return {
