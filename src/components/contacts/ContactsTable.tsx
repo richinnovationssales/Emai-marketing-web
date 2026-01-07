@@ -37,7 +37,7 @@ export function ContactsTable({ data, onDelete }: ContactsTableProps) {
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {data.length === 0 ? (
+                    {data?.length === 0 ? (
                         <TableRow>
                             <TableCell colSpan={5} className="h-24 text-center">
                                 No contacts found.
@@ -45,7 +45,7 @@ export function ContactsTable({ data, onDelete }: ContactsTableProps) {
                         </TableRow>
                     ) : (
                         data.map((contact) => (
-                            <TableRow key={contact.id}>
+                            <TableRow key={contact?.id}>
                                 <TableCell className="font-medium">
                                     {contact?.firstName} {contact?.lastName}
                                 </TableCell>
@@ -53,7 +53,7 @@ export function ContactsTable({ data, onDelete }: ContactsTableProps) {
                                 <TableCell>{contact?.phone || '-'}</TableCell>
                                 <TableCell>{contact?.groupId || '-'}</TableCell>
                                 <TableCell className="text-right space-x-2">
-                                    <Link href={`/client/contacts/${contact.id}/edit`} onClick={() => dispatch(setSelectedContact(contact))}>
+                                    <Link href={`/client/contacts/${contact?.id}/edit`} onClick={() => dispatch(setSelectedContact(contact))}>
                                         <Button variant="ghost" size="icon" className="h-8 w-8">
                                             <Edit2 className="h-4 w-4" />
                                         </Button>
