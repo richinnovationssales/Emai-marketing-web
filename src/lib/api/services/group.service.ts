@@ -33,4 +33,15 @@ export const groupService = {
   delete: async (id: string): Promise<void> => {
     await apiClient.delete(`${API_ENDPOINTS.GROUPS}/${id}`);
   },
+
+  assignContacts: async (groupId: string, contactIds: string[]): Promise<void> => {
+    await apiClient.post(`${API_ENDPOINTS.CONTACT_GROUPS}/assign`, { groupId, contactIds });
+  },
+
+  removeContacts: async (groupId: string, contactIds: string[]): Promise<void> => {
+    // Axios delete with body requires 'data' property
+    await apiClient.delete(`${API_ENDPOINTS.CONTACT_GROUPS}/remove`, {
+      data: { groupId, contactIds }
+    });
+  },
 };

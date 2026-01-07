@@ -9,7 +9,7 @@ import {
   selectCurrentGroup,
   selectGroupsLoading,
 } from '@/store/slices/group.slice';
-import { ContactsInGroupTable } from '@/components/groups/ContactsInGroupTable';
+import { ContactsTable } from '@/components/contacts/ContactsTable';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -148,8 +148,16 @@ export default function GroupDetailPage() {
                 Manage contacts in this group
               </CardDescription>
             </div>
-
-            {isAdmin && (
+             {/* Add Contacts button removed or can be re-added if we want 'Add' feature here too, 
+                 but current ContactsTable handles 'Add to Group' via its own toolbar if generic, 
+                 but here we are INSIDE a group. 
+                 The original had 'Add Contacts' button.
+                 ContactsTable has 'Add to Group' (assign existing).
+                 We might want a way to 'Add member to this group'. 
+                 For now, let's restore structure first.
+                 The ContactsTable has the 'Remove from Group' button.
+             */}
+             {isAdmin && (
               <Button onClick={handleAddContacts} size="sm" className="gap-2">
                 <UserPlus className="h-4 w-4" />
                 Add Contacts
@@ -158,10 +166,10 @@ export default function GroupDetailPage() {
           </div>
         </CardHeader>
         <CardContent>
-          <ContactsInGroupTable
-            contacts={contacts}
-            onRemoveContact={isAdmin ? handleRemoveContact : undefined}
-            showActions={isAdmin}
+          <ContactsTable
+            data={contacts} // ContactsTable now accepts Contact[]
+            onDelete={(id) => {}} // Optional, handled internally via store for the most part now
+            groupId={groupId}
           />
         </CardContent>
       </Card>

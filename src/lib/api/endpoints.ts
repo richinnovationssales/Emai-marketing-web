@@ -18,6 +18,7 @@
     ONBOARD: '/admin/clients/onboard',
   },
   GROUPS: '/groups',
+  CONTACT_GROUPS: '/contact-groups',
   TEMPLATES: '/templates',
   USERS: {
     BASE: '/users',

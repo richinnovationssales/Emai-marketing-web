@@ -93,6 +93,32 @@ export const deleteGroup = createAsyncThunk(
     }
 );
 
+// Bulk Assign Contacts
+export const assignContactsToGroup = createAsyncThunk(
+    'groups/assignContacts',
+    async ({ groupId, contactIds }: { groupId: string; contactIds: string[] }, { rejectWithValue }) => {
+        try {
+            await groupService.assignContacts(groupId, contactIds);
+            return { groupId, contactIds };
+        } catch (error: any) {
+            return rejectWithValue(error.response?.data?.message || 'Failed to assign contacts to group');
+        }
+    }
+);
+
+// Bulk Remove Contacts
+export const removeContactsFromGroup = createAsyncThunk(
+    'groups/removeContacts',
+    async ({ groupId, contactIds }: { groupId: string; contactIds: string[] }, { rejectWithValue }) => {
+        try {
+            await groupService.removeContacts(groupId, contactIds);
+            return { groupId, contactIds };
+        } catch (error: any) {
+            return rejectWithValue(error.response?.data?.message || 'Failed to remove contacts from group');
+        }
+    }
+);
+
 const groupSlice = createSlice({
     name: 'groups',
     initialState,
