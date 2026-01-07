@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch } from '@/store';
-import { fetchContactById } from '@/store/slices/contact.slice';
+import { fetchContactById, setSelectedContact, selectContactError } from '@/store/slices/contact.slice';
 // We need a selector for selectedContact. I created setSelectedContact and slice has selectedContact.
 // Selector: selectContacts... wait, did I export selectSelectedContact?
 // Let me check contact.slice.ts
@@ -22,14 +22,31 @@ export default function EditContactPage() {
     // selectSelectedContact
     const selectedContact = useSelector((state: any) => state.contacts.selectedContact); 
     const isLoading = useSelector((state: any) => state.contacts.isLoading);
+    const error = useSelector((state: any) => state.contacts.error) || useSelector(selectContactError);
+
+    console.log("selectedContactselectedContact",{selectedContact})
 
     useEffect(() => {
-        if (id) {
-            dispatch(fetchContactById(id));
+        if (id && !selectedContact) {
+             dispatch(fetchContactById(id));
         }
     }, [dispatch, id]);
 
-    if (isLoading && !selectedContact) {
+    // Handle 404/Error
+    if (error) {
+        return (
+             <div className="flex flex-col items-center justify-center py-20 space-y-4">
+                <p className="text-destructive font-semibold">Error loading contact</p>
+                <p className="text-muted-foreground">{error}</p>
+                <Link href="/client/contacts">
+                    <Button variant="outline">Go Back</Button>
+                </Link>
+            </div>
+        );
+    }
+
+    // Show loader if loading OR if we don't have the contact yet (initial fetch)
+    if (isLoading || (id && !selectedContact)) {
         return (
              <div className="flex justify-center py-20">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />

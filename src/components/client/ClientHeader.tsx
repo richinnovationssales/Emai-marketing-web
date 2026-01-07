@@ -15,6 +15,7 @@ import {
 import { useAuth } from '@/lib/api/hooks/useAuth';
 import { ModeToggle } from '@/components/layout/ModeToggle';
 import { cn } from '@/lib/utils';
+import { useEffect, useState } from 'react';
 
 interface ClientHeaderProps {
   onMenuClick?: () => void;
@@ -23,6 +24,14 @@ interface ClientHeaderProps {
 
 export function ClientHeader({ onMenuClick, sidebarCollapsed = false }: ClientHeaderProps) {
   const { user, logout } = useAuth();
+    const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+    if (!mounted) return null;
+
 
   return (
     <header
@@ -85,7 +94,7 @@ export function ClientHeader({ onMenuClick, sidebarCollapsed = false }: ClientHe
                 className="flex items-center gap-2 px-2 hover:bg-slate-100 dark:hover:bg-slate-800"
               >
                 <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white text-sm font-medium">
-                  {user?.email?.charAt(0).toUpperCase() || 'U'}
+                  {user?.email?.charAt(0).toUpperCase()}
                 </div>
                 <div className="hidden md:block text-left">
                   <p className="text-sm font-medium text-slate-900 dark:text-white">

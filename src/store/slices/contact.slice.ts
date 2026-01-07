@@ -114,6 +114,18 @@ export const bulkUploadContacts = createAsyncThunk(
     }
 );
 
+export const bulkDeleteContacts = createAsyncThunk(
+    'contacts/bulkDelete',
+    async (ids: string[], { rejectWithValue }) => {
+        try {
+            await contactService.bulkDelete(ids);
+            return ids;
+        } catch (error: any) {
+            return rejectWithValue(error.response?.data?.message || 'Failed to delete contacts');
+        }
+    }
+);
+
 // --- Slice ---
 
 const contactSlice = createSlice({
@@ -208,14 +220,23 @@ const contactSlice = createSlice({
         builder.addCase(bulkUploadContacts.fulfilled, (state, action) => {
             state.isUploading = false;
             state.uploadResult = action.payload;
-            // Optionally we could trigger a re-fetch of contacts here
         });
         builder.addCase(bulkUploadContacts.rejected, (state, action) => {
             state.isUploading = false;
             state.error = action.payload as string;
         });
+
+        // Bulk Delete
+        builder.addCase(bulkDeleteContacts.fulfilled, (state, action) => {
+            state.items = state.items.filter(c => !action.payload.includes(c.id));
+            if (state.selectedContact && action.payload.includes(state.selectedContact.id)) {
+                state.selectedContact = null;
+            }
+        });
     },
 });
+
+
 
 export const { setFilters, clearContactError, resetUploadResult, setSelectedContact } = contactSlice.actions;
 export default contactSlice.reducer;

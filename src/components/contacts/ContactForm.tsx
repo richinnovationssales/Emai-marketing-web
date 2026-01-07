@@ -25,6 +25,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 
 import { AppDispatch } from '@/store';
 import { createContact, updateContact, selectContactLoading, selectCustomFieldConfig, fetchCustomFields } from '@/store/slices/contact.slice';
+import { fetchGroups, selectGroups } from '@/store/slices/group.slice';
 import { Contact, CreateContactDTO } from '@/types/entities/contact.types';
 import { CustomFieldType } from '@/types/enums/custom-field-type.enum';
 
@@ -38,12 +39,58 @@ export function ContactForm({ initialData, isEditMode = false }: ContactFormProp
     const router = useRouter();
     const isLoading = useSelector(selectContactLoading);
     const customFields = useSelector(selectCustomFieldConfig);
+    const groups = useSelector(selectGroups);
 
     useEffect(() => {
         if (customFields.length === 0) {
             dispatch(fetchCustomFields({ includeInactive: false }));
         }
     }, [dispatch, customFields.length]);
+
+    // Fetch groups if not available
+    useEffect(() => {
+        if (groups.length === 0) {
+            dispatch(fetchGroups());
+        }
+    }, [dispatch, groups.length]);
+
+    // Normalize initial custom fields
+    const defaultCustomFields = useMemo(() => {
+        const mapped: Record<string, any> = {};
+
+        // 1. Prioritize 'customFieldValues' array (from detailed GET /:id) because it links values to field IDs.
+        if (Array.isArray(initialData?.customFieldValues) && initialData.customFieldValues.length > 0) {
+            initialData.customFieldValues.forEach((item: any) => {
+                // Find matching config to get the fieldKey (e.g., 'firstName')
+                const config = customFields.find((cf) => cf.id === item.customFieldId);
+                if (config) {
+                     mapped[config.fieldKey] = item.value;
+                }
+            });
+            return mapped;
+        }
+
+        // 2. Fallback to 'customFields' object or simple 'customFieldValues' object if array is empty or missing.
+        const source = initialData?.customFields || initialData?.customFieldValues || {};
+        
+        // Handle complex object from GET /:id which uses UUID keys and contains metadata
+        // vs simple object { key: value }
+        Object.entries(source).forEach(([key, val]: [string, any]) => {
+            if (val && typeof val === 'object' && 'value' in val && 'fieldKey' in val) {
+                // Complex format: key is UUID, val has value and fieldKey
+                mapped[val.fieldKey] = val.value;
+            } else if (val && typeof val === 'object' && 'customFieldId' in val) {
+                 // Format like in the log but maybe as object values? Unusual but safe to check.
+                  const config = customFields.find((cf) => cf.id === val.customFieldId);
+                  if (config) mapped[config.fieldKey] = val.value;
+            } else {
+                // Simple format or standard key
+                mapped[key] = val;
+            }
+        });
+        
+        return mapped;
+    }, [initialData, customFields]);
 
     // specific schema for standard fields
     const baseSchema = z.object({
@@ -97,7 +144,7 @@ export function ContactForm({ initialData, isEditMode = false }: ContactFormProp
         defaultValues: {
             email: initialData?.email || '',
             groupId: initialData?.groupId || '',
-            customFields: initialData?.customFields || initialData?.customFieldValues || {}, 
+            customFields: defaultCustomFields, 
         },
     });
 
@@ -189,21 +236,30 @@ export function ContactForm({ initialData, isEditMode = false }: ContactFormProp
                                     </FormItem>
                                 )}
                             /> */}
-                             {!isEditMode && (
-                                <FormField
+                             <FormField
                                     control={form.control}
                                     name="groupId"
                                     render={({ field }) => (
                                         <FormItem>
                                             <FormLabel>Assign to Group (Optional)</FormLabel>
-                                            <FormControl>
-                                                 <Input placeholder="Enter Group ID (Temporary)" {...field} />
-                                            </FormControl>
+                                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                                <FormControl>
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder="Select a group" />
+                                                    </SelectTrigger>
+                                                </FormControl>
+                                                <SelectContent>
+                                                    {groups.map((group) => (
+                                                        <SelectItem key={group.id} value={group.id}>
+                                                            {group.name}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
                                             <FormMessage />
                                         </FormItem>
                                     )}
                                 />
-                             )}
                         </div>
 
                         {/* Custom Fields Section */}

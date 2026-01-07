@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 interface ClientSidebarProps {
   className?: string;
@@ -41,6 +41,16 @@ export function ClientSidebar({
 
   // Get navigation items based on user role
   const navItems = user?.role ? getNavigationByRole(user.role) : [];
+
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  if (!isMounted) {
+    return null; // Or a tailored skeleton matching the sidebar structure
+  }
 
   return (
     <aside

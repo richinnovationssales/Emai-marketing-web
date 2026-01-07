@@ -51,4 +51,10 @@ export const contactService = {
         // Assuming the doc shows the raw response body.
         return data;
     },
+
+
+    // Bulk delete contacts
+    bulkDelete: async (ids: string[]): Promise<void> => {
+        await apiClient.post('/contacts/bulk-delete', { ids });
+    },
 };
