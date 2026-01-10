@@ -8,7 +8,9 @@ import {
     FileText,
     Layers,
     UserCog,
-    LucideIcon
+    LucideIcon,
+    Code2Icon,
+    Code2
 } from 'lucide-react';
 import { ROUTES } from './routes';
 import { AdminRole } from '@/types/enums/admin-role.enum';
@@ -110,6 +112,11 @@ export const CLIENT_SUPER_ADMIN_NAV_ITEMS: NavigationItem[] = [
         icon: Users,
     },
     {
+        title: 'Template Editor',
+        href: ROUTES.CLIENT.TEMPLATE_EDITOR,
+        icon: Code2,
+    },
+    {
         title: 'Settings',
         href: ROUTES.CLIENT.SETTINGS,
         icon: Settings,
@@ -151,6 +158,11 @@ export const CLIENT_ADMIN_NAV_ITEMS: NavigationItem[] = [
         title: 'Employees',
         href: ROUTES.CLIENT.EMPLOYEES,
         icon: Users,
+    },
+     {
+        title: 'Template Editor',
+        href: ROUTES.CLIENT.TEMPLATE_EDITOR,
+        icon: Code2,
     },
     {
         title: 'Settings',
