@@ -48,6 +48,7 @@ export const ROUTES = {
         TEMPLATES_CREATE: '/client/templates/create',
         TEMPLATE_DETAILS: (id: string) => `/client/templates/${id}`,
         TEMPLATE_EDIT: (id: string) => `/client/templates/${id}/edit`,
+        
         // User Management
         USERS: '/client/users',
         ADMINS: '/client/users/admins',
