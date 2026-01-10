@@ -48,6 +48,7 @@ export const ROUTES = {
         TEMPLATES_CREATE: '/client/templates/create',
         TEMPLATE_DETAILS: (id: string) => `/client/templates/${id}`,
         TEMPLATE_EDIT: (id: string) => `/client/templates/${id}/edit`,
+        TEMPLATE_EDITOR: '/client/templates/editor',
         
         // User Management
         USERS: '/client/users',
@@ -56,7 +57,6 @@ export const ROUTES = {
         ADMIN_DETAILS: (id: string) => `/client/users/admins/${id}`,
         ADMIN_EDIT: (id: string) => `/client/users/admins/${id}/edit`,
         EMPLOYEES: '/client/users/employees',
-        TEMPLATE_EDITOR: '/client/templates-editor',
         EMPLOYEES_CREATE: '/client/users/employees/create',
         EMPLOYEE_DETAILS: (id: string) => `/client/users/employees/${id}`,
         EMPLOYEE_EDIT: (id: string) => `/client/users/employees/${id}/edit`,

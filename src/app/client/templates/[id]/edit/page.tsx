@@ -213,7 +213,7 @@ export default function TemplateEditor() {
 
             <TabsContent value="edit" className="mt-4">
               <div className="space-y-4">
-                <div className="rounded-md border bg-muted/30 p-4">
+                {/* <div className="rounded-md border bg-muted/30 p-4">
                   <p className="text-sm text-muted-foreground mb-2">
                     Available variables: <code className="bg-muted px-2 py-1 rounded">{'{{firstName}}'}</code>{' '}
                     <code className="bg-muted px-2 py-1 rounded">{'{{lastName}}'}</code>{' '}
@@ -221,7 +221,7 @@ export default function TemplateEditor() {
                     <code className="bg-muted px-2 py-1 rounded">{'{{callToActionUrl}}'}</code>{' '}
                     <code className="bg-muted px-2 py-1 rounded">{'{{unsubscribeLink}}'}</code>
                   </p>
-                </div>
+                </div> */}
                 <textarea
                   value={htmlCode}
                   onChange={(e) => setHtmlCode(e.target.value)}

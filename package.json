@@ -49,6 +49,8 @@
     "react-dropzone": "^14.3.5",
     "react-hook-form": "^7.68.0",
     "react-redux": "^9.2.0",
+    "react-split": "^2.0.14",
+    "react-split-pane": "^2.0.3",
     "recharts": "^2.15.4",
     "sonner": "^1.7.4",
     "tailwind-merge": "^2.6.0",
