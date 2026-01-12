@@ -1,5 +1,13 @@
 import { CampaignStatus } from '../enums/campaign-status.enum';
 
+export interface UserSummary {
+    id: string;
+    email: string;
+    role: string;
+    createdAt: string;
+    updatedAt: string;
+}
+
 export interface Campaign {
     id: string;
     name: string;
@@ -13,6 +21,9 @@ export interface Campaign {
     clientId: string;
     createdById: string;
     templateId: string | null;
+    mailgunMessageIds?: string | null;  // JSON array of Mailgun IDs
+    mailgunTags?: string[];              // Mailgun tags
+    createdBy?: UserSummary;             // User who created the campaign
     createdAt: string;
     updatedAt: string;
     _count?: {
@@ -26,10 +37,8 @@ export interface CreateCampaignDTO {
     subject: string;
     content: string;
     isRecurring?: boolean;
-    recurringSchedule?: string;
-    scheduledDate?: string;
-    templateId?: string;
-    groupIds: string[];
+    recurringSchedule?: string | null;
+    groups?: { id: string }[];  // Array of group objects with IDs
 }
 
 export interface UpdateCampaignDTO {
@@ -37,9 +46,8 @@ export interface UpdateCampaignDTO {
     subject?: string;
     content?: string;
     isRecurring?: boolean;
-    recurringSchedule?: string;
-    scheduledDate?: string;
-    status?: CampaignStatus;
+    recurringSchedule?: string | null;
+    groups?: { id: string }[];  // Array of group objects with IDs
 }
 
 export interface CampaignAnalytics {

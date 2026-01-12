@@ -5,7 +5,15 @@
     REGISTER: '/auth/register-client'
   },
   CONTACTS: '/contacts',
-  CAMPAIGNS: '/campaigns',
+  CAMPAIGNS: {
+    BASE: '/campaigns',
+    BY_ID: (id: string) => `/campaigns/${id}`,
+    SUBMIT: (id: string) => `/campaigns/${id}/submit`,
+    PENDING: '/campaigns/pending',
+    APPROVE: (id: string) => `/campaigns/${id}/approve`,
+    REJECT: (id: string) => `/campaigns/${id}/reject`,
+    SEND: (id: string) => `/campaigns/${id}/send`,
+  },
   CLIENTS: {
     BASE: '/admin/clients',
     PENDING: '/admin/clients/pending',
