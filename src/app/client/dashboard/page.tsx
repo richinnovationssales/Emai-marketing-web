@@ -1,12 +1,7 @@
-'use client';
+"use client";
 
-import React, { useEffect, useMemo, useState } from 'react';
-import {
-  Download,
-  Mail,
-  Users,
-  TrendingUp
-} from 'lucide-react';
+import React, { useEffect, useMemo, useState } from "react";
+import { Download, Mail, Users, TrendingUp } from "lucide-react";
 
 import {
   Area,
@@ -15,11 +10,13 @@ import {
   ResponsiveContainer,
   Tooltip,
   XAxis,
-  YAxis
-} from 'recharts';
+  YAxis,
+} from "recharts";
 
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { dashboardService } from "@/lib/api/services/dashboard.service";
+import { format } from "date-fns";
 
 /* ===================== TYPES ===================== */
 
@@ -46,28 +43,78 @@ interface DashboardData {
 /* ===================== MOCK API ===================== */
 
 const fetchDashboardData = async (): Promise<DashboardData> => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve({
-        stats: {
-          contacts: 49,
-          campaigns: 84,
-          emailsSent: 0,
-          emailsRemaining: 845
-        },
-        campaignsPerMonth: [{ month: 'January', count: 84 }],
-        campaignStats: [
-          { name: 'test', date: '2026-01-07 to 2026-01-07', delivered: 0, opened: 0 },
-          { name: 'dfgdf', date: '2026-01-08 to 2026-01-08', delivered: 3, opened: 0 },
-          { name: 'xcxcxc', date: '2026-01-07 to 2026-01-08', delivered: 3, opened: 0 },
-          { name: 'CHnaged', date: '2025-12-26 to 2025-12-27', delivered: 3, opened: 1 },
-          { name: 'testting outlook', date: '2025-12-22 to 2025-12-23', delivered: 3, opened: 1 },
-          { name: 'ssss', date: '2025-12-18 to 2025-12-19', delivered: 3, opened: 0 },
-          { name: 'TESTING ALINGMENT', date: '2025-11-02 to 2025-11-02', delivered: 3, opened: 2 }
-        ]
+  try {
+    const response = await dashboardService.getClientDashboard();
+
+    // Transform API response to match dashboard structure
+    const stats: DashboardStats = {
+      contacts: response.contacts.length,
+      campaigns: response.campaigns.length,
+      emailsSent: response.campaigns.reduce((total, campaign) => {
+        return (
+          total +
+          (campaign.emailEvents?.filter((e) => e.eventType === "SENT").length ||
+            0)
+        );
+      }, 0),
+      emailsRemaining: 0, // This should come from plan data if available
+    };
+
+    // Calculate campaign stats from campaigns with email events
+    const campaignStats: CampaignStat[] = response.campaigns
+      .filter((c) => c.sentAt)
+      .map((campaign) => {
+        const delivered =
+          campaign.emailEvents?.filter((e) => e.eventType === "DELIVERED")
+            .length || 0;
+        const opened =
+          campaign.emailEvents?.filter((e) => e.eventType === "OPENED")
+            .length || 0;
+
+        return {
+          name: campaign.name,
+          date: campaign.sentAt
+            ? `${format(new Date(campaign.sentAt), "yyyy-MM-dd")} to ${format(
+                new Date(campaign.sentAt),
+                "yyyy-MM-dd"
+              )}`
+            : "Not sent",
+          delivered,
+          opened,
+        };
       });
-    }, 500);
-  });
+
+    // Group campaigns by month
+    const campaignsPerMonth = response.campaigns.reduce((acc, campaign) => {
+      const month = format(new Date(campaign.createdAt), "MMMM");
+      const existing = acc.find((item) => item.month === month);
+      if (existing) {
+        existing.count++;
+      } else {
+        acc.push({ month, count: 1 });
+      }
+      return acc;
+    }, [] as { month: string; count: number }[]);
+
+    return {
+      stats,
+      campaignsPerMonth,
+      campaignStats,
+    };
+  } catch (error) {
+    console.error("Failed to fetch dashboard data:", error);
+    // Return empty data structure on error
+    return {
+      stats: {
+        contacts: 0,
+        campaigns: 0,
+        emailsSent: 0,
+        emailsRemaining: 0,
+      },
+      campaignsPerMonth: [],
+      campaignStats: [],
+    };
+  }
 };
 
 /* ===================== COMPONENT ===================== */
@@ -86,10 +133,13 @@ export default function ClientDashboard() {
   const areaChartData = useMemo(() => {
     if (!data) return [];
 
-    const map: Record<string, { date: string; delivered: number; opened: number }> = {};
+    const map: Record<
+      string,
+      { date: string; delivered: number; opened: number }
+    > = {};
 
     data.campaignStats.forEach((item) => {
-      const date = item.date.split(' to ')[0];
+      const date = item.date.split(" to ")[0];
       if (!map[date]) {
         map[date] = { date, delivered: 0, opened: 0 };
       }
@@ -121,7 +171,9 @@ export default function ClientDashboard() {
   const totalDelivered = campaignStats.reduce((a, b) => a + b.delivered, 0);
   const totalOpened = campaignStats.reduce((a, b) => a + b.opened, 0);
   const openRate =
-    totalDelivered > 0 ? ((totalOpened / totalDelivered) * 100).toFixed(1) : '0';
+    totalDelivered > 0
+      ? ((totalOpened / totalDelivered) * 100).toFixed(1)
+      : "0";
 
   return (
     <div className="space-y-6">
@@ -137,9 +189,21 @@ export default function ClientDashboard() {
       {/* Stat Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatCard title="Contacts" value={stats.contacts} icon={<Users />} />
-        <StatCard title="Campaigns" value={stats.campaigns} icon={<TrendingUp />} />
-        <StatCard title="Emails Sent" value={stats.emailsSent} icon={<Mail />} />
-        <StatCard title="Emails Remaining" value={stats.emailsRemaining} icon={<Mail />} />
+        <StatCard
+          title="Campaigns"
+          value={stats.campaigns}
+          icon={<TrendingUp />}
+        />
+        <StatCard
+          title="Emails Sent"
+          value={stats.emailsSent}
+          icon={<Mail />}
+        />
+        <StatCard
+          title="Emails Remaining"
+          value={stats.emailsRemaining}
+          icon={<Mail />}
+        />
       </div>
 
       {/* KPI Row */}
@@ -231,7 +295,7 @@ export default function ClientDashboard() {
 function StatCard({
   title,
   value,
-  icon
+  icon,
 }: {
   title: string;
   value: number;
@@ -260,7 +324,6 @@ function MiniStat({ title, value }: { title: string; value: string | number }) {
     </Card>
   );
 }
-
 
 // 'use client';
 
@@ -485,7 +548,7 @@ function MiniStat({ title, value }: { title: string; value: string | number }) {
 //                   </thead>
 //                   <tbody>
 //                     {campaignStats.map((campaign, index) => (
-//                       <tr 
+//                       <tr
 //                         key={index}
 //                         className="border-b transition-colors hover:bg-muted/50"
 //                       >

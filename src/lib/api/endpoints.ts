@@ -35,13 +35,17 @@
   },
   CUSTOM_FIELDS: '/custom-fields',
   DASHBOARD: {
-    SUMMARY: '/dashboard/summary',
-    STATS: '/dashboard/stats',
+    ADMIN: '/dashboard/admin',
+    CLIENT: '/dashboard/client',
+    EMPLOYEE: '/dashboard/employee',
+    CAMPAIGN_PERFORMANCE: '/dashboard/campaign-performance',
   },
   ANALYTICS: {
-    CAMPAIGNS: '/analytics/campaigns',
-    CONTACTS: '/analytics/contacts',
     OVERVIEW: '/analytics/overview',
+    CAMPAIGNS: '/analytics/campaigns',
+    CAMPAIGN_DETAIL: (id: string) => `/analytics/campaigns/${id}`,
+    CAMPAIGN_TIMELINE: (id: string) => `/analytics/campaigns/${id}/timeline`,
+    EVENTS: '/analytics/events',
   },
   ADMINS: {
     BASE: '/admin/users',

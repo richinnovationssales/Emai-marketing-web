@@ -1,20 +1,54 @@
-﻿import  apiClient from '../client';
+﻿import apiClient from '../client';
 import { API_ENDPOINTS } from '../endpoints';
-import { ApiResponse } from '@/types/api/response.types';
+import {
+  AnalyticsOverviewResponse,
+  AnalyticsOverviewParams,
+  CampaignsAnalyticsResponse,
+  CampaignAnalyticsDetailResponse,
+  CampaignTimelineResponse,
+  RecentEventsResponse,
+  AnalyticsEventsParams,
+} from '@/types/entities/analytics.types';
 
 export const analyticsService = {
-  getCampaignPerformance: async (campaignId: string): Promise<ApiResponse<any>> => {
-    const response = await apiClient.get(`${API_ENDPOINTS.ANALYTICS.CAMPAIGNS}/${campaignId}`);
+  /**
+   * Get analytics overview with optional date filtering
+   */
+  getOverview: async (params?: AnalyticsOverviewParams): Promise<AnalyticsOverviewResponse> => {
+    const response = await apiClient.get(API_ENDPOINTS.ANALYTICS.OVERVIEW, { params });
     return response.data;
   },
 
-  getContactGrowth: async (period: string): Promise<ApiResponse<any>> => {
-    const response = await apiClient.get(API_ENDPOINTS.ANALYTICS.CONTACTS, { params: { period } });
+  /**
+   * Get analytics for all campaigns
+   */
+  getAllCampaignsAnalytics: async (): Promise<CampaignsAnalyticsResponse> => {
+    const response = await apiClient.get(API_ENDPOINTS.ANALYTICS.CAMPAIGNS);
     return response.data;
   },
 
-  getOverview: async (period: string): Promise<ApiResponse<any>> => {
-    const response = await apiClient.get(API_ENDPOINTS.ANALYTICS.OVERVIEW, { params: { period } });
+  /**
+   * Get detailed analytics for a specific campaign
+   */
+  getCampaignAnalytics: async (campaignId: string): Promise<CampaignAnalyticsDetailResponse> => {
+    const response = await apiClient.get(API_ENDPOINTS.ANALYTICS.CAMPAIGN_DETAIL(campaignId));
+    return response.data;
+  },
+
+  /**
+   * Get chronological event timeline for a campaign
+   */
+  getCampaignTimeline: async (campaignId: string): Promise<CampaignTimelineResponse> => {
+    const response = await apiClient.get(API_ENDPOINTS.ANALYTICS.CAMPAIGN_TIMELINE(campaignId));
+    return response.data;
+  },
+
+  /**
+   * Get recent email events
+   */
+  getRecentEvents: async (params?: AnalyticsEventsParams): Promise<RecentEventsResponse> => {
+    const response = await apiClient.get(API_ENDPOINTS.ANALYTICS.EVENTS, { params });
     return response.data;
   },
 };
+
