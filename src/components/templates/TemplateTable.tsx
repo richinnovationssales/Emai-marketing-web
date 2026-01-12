@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import {
   Table,
@@ -7,18 +7,12 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import { Button } from '@/components/ui/button';
-import { Edit2, Trash2, Copy } from 'lucide-react';
-import Link from 'next/link';
-
-export interface Template {
-  id: string;
-  name: string;
-  subject: string;
-  status: 'ACTIVE' | 'DRAFT';
-  updatedAt: string;
-}
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Edit2, Trash2, Copy } from "lucide-react";
+import Link from "next/link";
+import { Template } from "@/types/entities/template.types";
+import { format } from "date-fns";
 
 interface TemplateTableProps {
   data: Template[];
@@ -31,6 +25,14 @@ export function TemplateTable({
   onDelete,
   onDuplicate,
 }: TemplateTableProps) {
+  const formatDate = (dateString: string) => {
+    try {
+      return format(new Date(dateString), "MMM d, yyyy");
+    } catch {
+      return dateString;
+    }
+  };
+
   return (
     <div className="rounded-md border">
       <Table>
@@ -54,26 +56,24 @@ export function TemplateTable({
           ) : (
             data.map((template) => (
               <TableRow key={template.id}>
-                <TableCell className="font-medium">
-                  {template.name}
-                </TableCell>
+                <TableCell className="font-medium">{template.name}</TableCell>
 
-                <TableCell>{template.subject}</TableCell>
+                <TableCell>{template.subject || "-"}</TableCell>
 
                 <TableCell>
                   <span
                     className={`text-sm font-medium ${
-                      template.status === 'ACTIVE'
-                        ? 'text-green-600'
-                        : 'text-muted-foreground'
+                      template.isActive
+                        ? "text-green-600"
+                        : "text-muted-foreground"
                     }`}
                   >
-                    {template.status}
+                    {template.isActive ? "ACTIVE" : "DRAFT"}
                   </span>
                 </TableCell>
 
                 <TableCell className="text-muted-foreground">
-                  {template.updatedAt}
+                  {formatDate(template.updatedAt)}
                 </TableCell>
 
                 <TableCell className="text-right space-x-2">

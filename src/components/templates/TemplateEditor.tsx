@@ -23,7 +23,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
 
 import { registerBlocks } from "./editor/blocks";
 import {
@@ -36,9 +39,27 @@ import {
 } from "./editor/config";
 import { downloadFile } from "./editor/utils";
 
-export default function TemplateEditor() {
+export interface TemplateEditorProps {
+  templateId?: string;
+  initialName?: string;
+  initialSubject?: string;
+  initialContent?: string;
+  onSave?: (data: { name: string; subject: string; content: string }) => void;
+  isSaving?: boolean;
+}
+
+export default function TemplateEditor({
+  templateId,
+  initialName = "",
+  initialSubject = "",
+  initialContent,
+  onSave,
+  isSaving = false,
+}: TemplateEditorProps) {
   const [activeLeftTab, setActiveLeftTab] = useState("blocks");
   const [activeRightTab, setActiveRightTab] = useState("settings");
+  const [templateName, setTemplateName] = useState(initialName);
+  const [templateSubject, setTemplateSubject] = useState(initialSubject);
 
   const editorRef = useRef<Editor | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -85,8 +106,10 @@ export default function TemplateEditor() {
     editor.on("load", () => {
       setIsReady(true);
 
-      // Default template if empty
-      if (editor.getHtml() === "") {
+      // Load initial content or default template
+      if (initialContent) {
+        editor.setComponents(initialContent);
+      } else if (editor.getHtml() === "") {
         editor.setComponents(`
           <mjml>
             <mj-body background-color="#f0f2f5">
@@ -173,10 +196,23 @@ export default function TemplateEditor() {
         }
         break;
       case "save":
-        const res = editorRef.current.runCommand("mjml-get-code");
-        if (res) {
-          localStorage.setItem("saved-template", JSON.stringify(res));
-          toast.success("Template saved locally!");
+        if (onSave && editorRef.current) {
+          const content = editorRef.current.getHtml();
+          if (!templateName.trim()) {
+            toast.error("Please enter a template name");
+            return;
+          }
+          onSave({
+            name: templateName,
+            subject: templateSubject,
+            content: content || "",
+          });
+        } else {
+          const res = editorRef.current.runCommand("mjml-get-code");
+          if (res) {
+            localStorage.setItem("saved-template", JSON.stringify(res));
+            toast.success("Template saved locally!");
+          }
         }
         break;
     }
@@ -258,6 +294,30 @@ export default function TemplateEditor() {
 
       {/* CENTER - CANVAS */}
       <div className="flex-1 flex flex-col bg-muted/30">
+        {/* Template Metadata */}
+        {onSave && (
+          <div className="border-b bg-background p-4 grid grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <Label htmlFor="template-name">Template Name *</Label>
+              <Input
+                id="template-name"
+                placeholder="Enter template name"
+                value={templateName}
+                onChange={(e) => setTemplateName(e.target.value)}
+              />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="template-subject">Email Subject</Label>
+              <Input
+                id="template-subject"
+                placeholder="Enter email subject"
+                value={templateSubject}
+                onChange={(e) => setTemplateSubject(e.target.value)}
+              />
+            </div>
+          </div>
+        )}
+
         {/* Toolbar */}
         <div className="h-14 border-b bg-background flex items-center justify-between px-4">
           <div className="flex items-center gap-1 bg-muted/50 p-1 rounded-lg">
@@ -317,8 +377,17 @@ export default function TemplateEditor() {
             >
               <Upload className="w-4 h-4 mr-2" /> Import
             </Button>
-            <Button size="sm" onClick={() => executeCommand("save")}>
-              <Save className="w-4 h-4 mr-2" /> Save
+            <Button
+              size="sm"
+              onClick={() => executeCommand("save")}
+              disabled={isSaving}
+            >
+              {isSaving ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
+                <Save className="w-4 h-4 mr-2" />
+              )}
+              {isSaving ? "Saving..." : "Save"}
             </Button>
             <input
               type="file"
