@@ -19,13 +19,18 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Skeleton } from "@/components/ui/skeleton";
+import { TemplateView } from "@/types/entities/template.types";
 
 export default function TemplatesPage() {
   const { data, isLoading, isError } = useTemplates();
   const deleteTemplate = useDeleteTemplate();
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
-  const templates = data?.data || [];
+  // Map API templates → UI templates
+  const templates: TemplateView[] = ((data?.data ?? data ?? []) as any[]).map((t) => ({
+    ...t,
+    isActive: true, // replace later with real backend logic
+  }));
 
   const handleDelete = (id: string) => {
     setDeleteId(id);
@@ -40,7 +45,6 @@ export default function TemplatesPage() {
 
   const handleDuplicate = (id: string) => {
     console.log("Duplicate template:", id);
-    // TODO: Implement duplicate functionality
   };
 
   return (
@@ -88,7 +92,7 @@ export default function TemplatesPage() {
         </CardContent>
       </Card>
 
-      {/* Delete Confirmation Dialog */}
+      {/* Delete Confirmation */}
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>

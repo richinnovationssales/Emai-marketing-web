@@ -11,11 +11,11 @@ import {
 import { Button } from "@/components/ui/button";
 import { Edit2, Trash2, Copy } from "lucide-react";
 import Link from "next/link";
-import { Template } from "@/types/entities/template.types";
+import { TemplateView } from "@/types/entities/template.types";
 import { format } from "date-fns";
 
 interface TemplateTableProps {
-  data: Template[];
+  data: TemplateView[];
   onDelete: (id: string) => void;
   onDuplicate?: (id: string) => void;
 }
@@ -56,7 +56,9 @@ export function TemplateTable({
           ) : (
             data.map((template) => (
               <TableRow key={template.id}>
-                <TableCell className="font-medium">{template.name}</TableCell>
+                <TableCell className="font-medium">
+                  {template.name}
+                </TableCell>
 
                 <TableCell>{template.subject || "-"}</TableCell>
 
