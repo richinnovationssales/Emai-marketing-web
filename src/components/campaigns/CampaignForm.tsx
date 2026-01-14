@@ -1,13 +1,14 @@
-'use client';
+"use client";
 
-import { useState, ChangeEvent } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
-import { Upload, Eye } from 'lucide-react';
-import { toast } from 'sonner';
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { useRouter } from "next/navigation";
+import { Eye, Save, Calendar, FileText } from "lucide-react";
+import dynamic from "next/dynamic";
 
-import { Button } from '@/components/ui/button';
+import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
@@ -15,298 +16,397 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
+  FormDescription,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { Label } from "@/components/ui/label";
 
-import DateRangePicker from '../shared/DateRangePicker';
-import { CampaignEditor } from './CampaignEditor';
-import { CampaignPreview } from './CampaignPreview';
+import { GroupSelector } from "./GroupSelector";
+import { TemplateSelector } from "./TemplateSelector";
+import { RecurringScheduleForm } from "./RecurringScheduleForm";
+import { CampaignPreview } from "./CampaignPreview";
+import { useCreateCampaign } from "@/lib/api/hooks/useCampaigns";
+import { Template } from "@/types/entities/template.types";
+import { RecurringFrequency } from "@/types/entities/campaign.types";
+
+// Dynamic import for CampaignEditor to avoid SSR issues with GrapeJS
+const CampaignEditor = dynamic(
+  () =>
+    import("./CampaignEditor").then((mod) => ({ default: mod.CampaignEditor })),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="h-[600px] border rounded-lg flex items-center justify-center bg-muted/30">
+        Loading editor...
+      </div>
+    ),
+  }
+);
 
 /* ---------------- Schema ---------------- */
 
-const campaignSchema = z
-  .object({
-    sender: z.string().min(1, 'Sender is required'),
-    recipient: z.string().min(1, 'Recipient is required'),
-    name: z.string().min(1, 'Campaign name is required'),
-    templateId: z.string().min(1, 'Template is required'),
-    startDate: z.date(),
-    endDate: z.date(),
-    frequency: z.enum(['DAILY', 'CUSTOM']),
-    customDates: z.string().optional(),
-    messageHtml: z.string().min(1, 'HTML message is required'),
-    customMessage: z.string().min(1, 'Custom message is required'),
-  })
-  .refine((data) => data.endDate >= data.startDate, {
-    message: 'End date must be after start date',
-    path: ['endDate'],
-  });
+const campaignSchema = z.object({
+  name: z.string().min(1, "Campaign name is required").max(255),
+  subject: z.string().min(1, "Subject is required").max(500),
+  content: z.string().min(1, "Content is required"),
+  groupIds: z.array(z.string()).min(1, "Select at least one recipient group"),
+
+  // Recurring Schedule
+  isRecurring: z.boolean().default(false),
+  recurringFrequency: z
+    .enum(["NONE", "DAILY", "WEEKLY", "BIWEEKLY", "MONTHLY", "CUSTOM"])
+    .default("NONE"),
+  recurringTime: z.string().optional(),
+  recurringTimezone: z.string().optional(),
+  recurringDaysOfWeek: z.array(z.number().min(0).max(6)).optional(),
+  recurringDayOfMonth: z.number().min(1).max(31).optional(),
+  recurringStartDate: z.string().optional(),
+  recurringEndDate: z.string().optional(),
+  customCronExpression: z.string().optional(),
+});
 
 type CampaignFormValues = z.infer<typeof campaignSchema>;
 
-export function CampaignForm() {
-  const [htmlFileName, setHtmlFileName] = useState<string | null>(null);
+interface CampaignFormProps {
+  mode?: "create" | "edit";
+  initialData?: Partial<CampaignFormValues>;
+  campaignId?: string;
+}
+
+export function CampaignForm({
+  mode = "create",
+  initialData,
+}: CampaignFormProps) {
+  const router = useRouter();
   const [showPreview, setShowPreview] = useState(false);
+  const [selectedTemplateId, setSelectedTemplateId] = useState<
+    string | undefined
+  >();
+
+  const createCampaign = useCreateCampaign();
 
   const form = useForm<CampaignFormValues>({
     resolver: zodResolver(campaignSchema),
     defaultValues: {
-      frequency: 'DAILY',
+      name: "",
+      subject: "",
+      content: "",
+      groupIds: [],
+      isRecurring: false,
+      recurringFrequency: "NONE",
+      recurringTime: "09:00",
+      recurringTimezone: "Asia/Kolkata",
+      recurringDaysOfWeek: [],
+      ...initialData,
     },
   });
 
-  const frequency = form.watch('frequency');
-  const messageHtml = form.watch('messageHtml');
-  const customMessage = form.watch('customMessage');
+  const { watch, setValue } = form;
+  const content = watch("content");
+  const subject = watch("subject");
+  const isRecurring = watch("isRecurring");
+  const recurringFrequency = watch("recurringFrequency");
 
-  /* ---------------- HTML Upload ---------------- */
+  /* ---------------- Template Selection ---------------- */
 
-  const handleHtmlUpload = (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    if (!file.name.endsWith('.html')) {
-      toast.error('Only HTML files are allowed');
-      return;
+  const handleTemplateSelect = (template: Template | null) => {
+    if (template) {
+      setSelectedTemplateId(template.id);
+      setValue("subject", template.subject, { shouldValidate: true });
+      setValue("content", template.content, { shouldValidate: true });
+    } else {
+      setSelectedTemplateId(undefined);
+      // Clear content when switching to no template
+      setValue("content", "", { shouldValidate: false });
     }
+  };
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      form.setValue('messageHtml', reader.result as string, {
-        shouldValidate: true,
-      });
-      setHtmlFileName(file.name);
-    };
-    reader.readAsText(file);
+  /* ---------------- Schedule Field Updates ---------------- */
+
+  const handleScheduleChange = (field: string, value: any) => {
+    setValue(field as keyof CampaignFormValues, value, {
+      shouldValidate: true,
+    });
   };
 
   /* ---------------- Submit ---------------- */
 
   function onSubmit(data: CampaignFormValues) {
-    console.log('Campaign Payload:', data);
-    toast.success('Campaign created (UI only)');
+    // Build API payload
+    const payload = {
+      name: data.name,
+      subject: data.subject,
+      content: data.content,
+      groupIds: data.groupIds,
+      isRecurring: data.isRecurring,
+      ...(data.isRecurring && {
+        recurringFrequency: data.recurringFrequency,
+        recurringTime: data.recurringTime,
+        recurringTimezone: data.recurringTimezone,
+        ...(data.recurringDaysOfWeek?.length && {
+          recurringDaysOfWeek: data.recurringDaysOfWeek,
+        }),
+        ...(data.recurringDayOfMonth && {
+          recurringDayOfMonth: data.recurringDayOfMonth,
+        }),
+        ...(data.recurringStartDate && {
+          recurringStartDate: data.recurringStartDate,
+        }),
+        ...(data.recurringEndDate && {
+          recurringEndDate: data.recurringEndDate,
+        }),
+        ...(data.customCronExpression && {
+          customCronExpression: data.customCronExpression,
+        }),
+      }),
+    };
+
+    createCampaign.mutate(payload, {
+      onSuccess: () => {
+        router.push("/client/campaigns");
+      },
+    });
   }
 
   return (
-    <Card className="max-w-5xl mx-auto">
-      <CardHeader>
-        <CardTitle className="text-2xl font-semibold">
-          Create Campaign
-        </CardTitle>
-      </CardHeader>
+    <div className="max-w-7xl mx-auto">
+      {/* Page Header */}
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold tracking-tight">
+          {mode === "create" ? "Create Campaign" : "Edit Campaign"}
+        </h1>
+        <p className="text-muted-foreground">
+          Design your email campaign and configure delivery settings
+        </p>
+      </div>
 
-      <CardContent>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)}>
+          <div className="grid lg:grid-cols-3 gap-6">
+            {/* ========== LEFT PANEL - Email Content Only ========== */}
+            <div className="lg:col-span-2 space-y-6">
+              {/* Email Content Card */}
+              <Card>
+                <CardHeader className="pb-4">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <FileText className="h-5 w-5 text-muted-foreground" />
+                    Email Content
+                  </CardTitle>
+                  <CardDescription>
+                    Design the email your recipients will receive. Drag blocks
+                    to build your layout.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-5">
+                  {/* Subject */}
+                  <FormField
+                    control={form.control}
+                    name="subject"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Email Subject</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="e.g., 🎉 Don't miss our Summer Sale!"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-            {/* Sender & Recipient */}
-            <div className="grid md:grid-cols-2 gap-6">
-              <FormField
-                control={form.control}
-                name="sender"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Sender</FormLabel>
-                    <FormControl>
-                      <Input placeholder="no-reply@company.com" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="recipient"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Recipient</FormLabel>
-                    <FormControl>
-                      <Input placeholder="All Users / Group" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                  {/* Content Editor */}
+                  <FormField
+                    control={form.control}
+                    name="content"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Email Body</FormLabel>
+                        <FormControl>
+                          <CampaignEditor
+                            value={field.value}
+                            onChange={field.onChange}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </CardContent>
+              </Card>
             </div>
 
-            {/* Campaign Name */}
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Campaign Name</FormLabel>
-                  <FormControl>
-                    <Input placeholder="New Product Launch" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {/* ========== RIGHT PANEL - Campaign Details + Schedule + Actions ========== */}
+            <div className="lg:col-span-1 space-y-6">
+              {/* Campaign Details Card */}
+              <Card>
+                <CardHeader className="pb-4">
+                  <CardTitle className="text-lg">Campaign Details</CardTitle>
+                  <CardDescription>
+                    Basic information about your campaign
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-5">
+                  {/* Campaign Name */}
+                  <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Campaign Name</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="e.g., Summer Sale Announcement"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          Internal name to identify this campaign
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-            {/* Template */}
-            <FormField
-              control={form.control}
-              name="templateId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Template</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select template" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="1">Welcome Template</SelectItem>
-                      <SelectItem value="2">Promo Template</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Dates */}
-            <div className="grid md:grid-cols-2 gap-6">
-              <FormField
-                control={form.control}
-                name="startDate"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Start Date</FormLabel>
-                    <FormControl>
-                      <DateRangePicker
-                        value={field.value}
-                        onChange={field.onChange}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="endDate"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>End Date</FormLabel>
-                    <FormControl>
-                      <DateRangePicker
-                        value={field.value}
-                        onChange={field.onChange}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            {/* Frequency */}
-            <FormField
-              control={form.control}
-              name="frequency"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Campaign Frequency</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="DAILY">Daily</SelectItem>
-                      <SelectItem value="CUSTOM">Custom Dates</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </FormItem>
-              )}
-            />
-
-            {frequency === 'CUSTOM' && (
-              <FormField
-                control={form.control}
-                name="customDates"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Custom Dates</FormLabel>
-                    <FormControl>
-                      <Input placeholder="YYYY-MM-DD, YYYY-MM-DD" {...field} />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-            )}
-
-            {/* HTML Upload */}
-            <FormField
-              control={form.control}
-              name="messageHtml"
-              render={() => (
-                <FormItem>
-                  <FormLabel>Message HTML</FormLabel>
-                  <FormControl>
-                    <Input type="file" accept=".html" onChange={handleHtmlUpload} />
-                  </FormControl>
-                  {htmlFileName && (
-                    <p className="text-sm text-muted-foreground">
-                      Uploaded: {htmlFileName}
+                  {/* Template Selection */}
+                  <div className="space-y-2">
+                    <Label>Use Template (Optional)</Label>
+                    <TemplateSelector
+                      selectedId={selectedTemplateId}
+                      onSelect={handleTemplateSelect}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Select a template to auto-fill subject and content
                     </p>
-                  )}
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                  </div>
 
-            {/* Custom Greeting */}
-            <FormField
-              control={form.control}
-              name="customMessage"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Your Custom Greeting & Message</FormLabel>
-                  <FormControl>
-                    <CampaignEditor value={field.value} onChange={field.onChange} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                  {/* Recipients - Group Selection */}
+                  <FormField
+                    control={form.control}
+                    name="groupIds"
+                    render={({ field, fieldState }) => (
+                      <FormItem>
+                        <FormLabel>Recipients</FormLabel>
+                        <FormControl>
+                          <GroupSelector
+                            selectedIds={field.value}
+                            onChange={field.onChange}
+                            error={fieldState.error?.message}
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          Select recipient groups
+                        </FormDescription>
+                      </FormItem>
+                    )}
+                  />
+                </CardContent>
+              </Card>
 
-            {/* Preview */}
-            {(messageHtml || customMessage) && (
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setShowPreview(true)}
-              >
-                <Eye className="mr-2 h-4 w-4" />
-                Preview Campaign
-              </Button>
-            )}
+              {/* Schedule & Frequency Card */}
+              <Card>
+                <CardHeader className="pb-4">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-5 w-5 text-muted-foreground" />
+                    <CardTitle className="text-lg">
+                      Schedule & Frequency
+                    </CardTitle>
+                  </div>
+                  <CardDescription>
+                    Configure when and how often to send
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <RecurringScheduleForm
+                    isRecurring={isRecurring}
+                    frequency={recurringFrequency as RecurringFrequency}
+                    time={watch("recurringTime")}
+                    timezone={watch("recurringTimezone")}
+                    daysOfWeek={watch("recurringDaysOfWeek")}
+                    dayOfMonth={watch("recurringDayOfMonth")}
+                    startDate={
+                      watch("recurringStartDate")
+                        ? new Date(watch("recurringStartDate")!)
+                        : undefined
+                    }
+                    endDate={
+                      watch("recurringEndDate")
+                        ? new Date(watch("recurringEndDate")!)
+                        : undefined
+                    }
+                    customCron={watch("customCronExpression")}
+                    onChange={handleScheduleChange}
+                  />
+                </CardContent>
+              </Card>
 
-            <Button type="submit" className="w-full">
-              Create Campaign
-            </Button>
-          </form>
-        </Form>
-      </CardContent>
+              {/* Actions Card */}
+              <Card className="sticky bottom-6">
+                <CardContent className="pt-6">
+                  <div className="flex flex-col gap-3">
+                    {content && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="w-full"
+                        onClick={() => setShowPreview(true)}
+                      >
+                        <Eye className="mr-2 h-4 w-4" />
+                        Preview Email
+                      </Button>
+                    )}
+
+                    <Separator />
+
+                    <div className="flex gap-3">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="flex-1"
+                        onClick={() => router.back()}
+                      >
+                        Cancel
+                      </Button>
+
+                      <Button
+                        type="submit"
+                        className="flex-1"
+                        disabled={createCampaign.isPending}
+                      >
+                        {createCampaign.isPending ? (
+                          "Creating..."
+                        ) : (
+                          <>
+                            <Save className="mr-2 h-4 w-4" />
+                            {mode === "create" ? "Create" : "Save"}
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </form>
+      </Form>
 
       {showPreview && (
         <CampaignPreview
-          html={messageHtml}
-          customMessage={customMessage}
+          html={content}
+          customMessage={subject}
           onClose={() => setShowPreview(false)}
         />
       )}
-    </Card>
+    </div>
   );
 }

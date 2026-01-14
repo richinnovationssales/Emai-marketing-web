@@ -1,33 +1,22 @@
-'use client';
+"use client";
 
-import { Plus } from 'lucide-react';
-import Link from 'next/link';
+import { Plus } from "lucide-react";
+import Link from "next/link";
 
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { CampaignTable, Campaign } from '@/components/campaigns/CampaignTable';
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CampaignTable } from "@/components/campaigns/CampaignTable";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useCampaigns, useDeleteCampaign } from "@/lib/api/hooks/useCampaigns";
 
 export default function CampaignsPage() {
-  // TEMPORARY STATIC DATA
-  const campaigns: Campaign[] = [
-    {
-      id: '1',
-      name: 'Welcome Campaign',
-      subject: 'Welcome to our platform',
-      status: 'SENT',
-      updatedAt: '2026-01-02',
-    },
-    {
-      id: '2',
-      name: 'New Feature Announcement',
-      subject: 'Check out what’s new!',
-      status: 'DRAFT',
-      updatedAt: '2026-01-05',
-    },
-  ];
+  const { data: campaigns, isLoading, error } = useCampaigns();
+  const deleteCampaign = useDeleteCampaign();
 
   const handleDelete = (id: string) => {
-    console.log('Delete campaign:', id);
+    if (confirm("Are you sure you want to delete this campaign?")) {
+      deleteCampaign.mutate(id);
+    }
   };
 
   return (
@@ -35,9 +24,7 @@ export default function CampaignsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">
-            Campaigns
-          </h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Campaigns</h1>
           <p className="text-sm text-muted-foreground">
             Create, manage, and track your email campaigns
           </p>
@@ -57,10 +44,32 @@ export default function CampaignsPage() {
           <CardTitle>Email Campaigns</CardTitle>
         </CardHeader>
         <CardContent>
-          <CampaignTable
-            data={campaigns}
-            onDelete={handleDelete}
-          />
+          {isLoading ? (
+            <div className="space-y-3">
+              {[1, 2, 3].map((i) => (
+                <Skeleton key={i} className="h-12 w-full" />
+              ))}
+            </div>
+          ) : error ? (
+            <div className="text-center py-8 text-destructive">
+              Failed to load campaigns. Please try again.
+            </div>
+          ) : campaigns && campaigns.length > 0 ? (
+            <CampaignTable
+              data={campaigns.map((c) => ({
+                id: c.id,
+                name: c.name,
+                subject: c.subject,
+                status: c.status,
+                updatedAt: c.updatedAt,
+              }))}
+              onDelete={handleDelete}
+            />
+          ) : (
+            <div className="text-center py-8 text-muted-foreground">
+              No campaigns yet. Create your first campaign to get started.
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

@@ -1,6 +1,11 @@
 import apiClient from '../client';
 import { API_ENDPOINTS } from '../endpoints';
-import { Campaign, CreateCampaignDTO, UpdateCampaignDTO } from '@/types/entities/campaign.types';
+import { 
+  Campaign, 
+  CreateCampaignDTO, 
+  UpdateCampaignDTO, 
+  UpdateRecurringScheduleDTO 
+} from '@/types/entities/campaign.types';
 import { ApiResponse } from '@/types/api/response.types';
 
 export const campaignService = {
@@ -95,6 +100,18 @@ export const campaignService = {
   send: async (id: string): Promise<{ message: string }> => {
     const { data } = await apiClient.post<{ message: string }>(
       API_ENDPOINTS.CAMPAIGNS.SEND(id)
+    );
+    return data;
+  },
+
+  /**
+   * Update recurring schedule for a campaign
+   * Only allowed for campaigns in DRAFT or APPROVED status
+   */
+  updateSchedule: async (id: string, scheduleData: UpdateRecurringScheduleDTO): Promise<Campaign> => {
+    const { data } = await apiClient.patch<Campaign>(
+      API_ENDPOINTS.CAMPAIGNS.SCHEDULE(id),
+      scheduleData
     );
     return data;
   },

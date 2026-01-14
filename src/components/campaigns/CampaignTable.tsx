@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import {
   Table,
@@ -7,16 +7,17 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import { Button } from '@/components/ui/button';
-import { Edit2, Trash2, Eye } from 'lucide-react';
-import Link from 'next/link';
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Edit2, Trash2, Eye } from "lucide-react";
+import Link from "next/link";
+import { CampaignStatus } from "@/types/enums/campaign-status.enum";
 
 export interface Campaign {
   id: string;
   name: string;
   subject: string;
-  status: 'DRAFT' | 'PENDING_APPROVAL' | 'APPROVED' | 'SENT';
+  status: CampaignStatus;
   updatedAt: string;
 }
 
@@ -49,20 +50,18 @@ export function CampaignTable({ data, onDelete }: CampaignTableProps) {
           ) : (
             data.map((campaign) => (
               <TableRow key={campaign.id}>
-                <TableCell className="font-medium">
-                  {campaign.name}
-                </TableCell>
+                <TableCell className="font-medium">{campaign.name}</TableCell>
 
                 <TableCell>{campaign.subject}</TableCell>
 
                 <TableCell>
                   <span
                     className={`text-sm font-medium ${
-                      campaign.status === 'SENT'
-                        ? 'text-green-600'
-                        : campaign.status === 'APPROVED'
-                        ? 'text-blue-600'
-                        : 'text-muted-foreground'
+                      campaign.status === "SENT"
+                        ? "text-green-600"
+                        : campaign.status === "APPROVED"
+                        ? "text-blue-600"
+                        : "text-muted-foreground"
                     }`}
                   >
                     {campaign.status}

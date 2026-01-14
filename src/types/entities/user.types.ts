@@ -31,6 +31,7 @@ export interface UserLoginDTO {
 export interface UserAuthResponse {
     user: User;
     token: string;
+    refreshToken?: string;
 }
 
 export type CreateUserData = CreateUserDTO;

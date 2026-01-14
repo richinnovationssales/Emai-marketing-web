@@ -8,6 +8,7 @@
   CAMPAIGNS: {
     BASE: '/campaigns',
     BY_ID: (id: string) => `/campaigns/${id}`,
+    SCHEDULE: (id: string) => `/campaigns/${id}/schedule`,
     SUBMIT: (id: string) => `/campaigns/${id}/submit`,
     PENDING: '/campaigns/pending',
     APPROVE: (id: string) => `/campaigns/${id}/approve`,

@@ -42,11 +42,11 @@ export const useAuth = () => {
         }
     }, [dispatch]);
 
-    const logout = useCallback(() => {
+    const logout = useCallback(async () => {
         console.log('🚪 Logout initiated from hook');
         
         // Clear service-side (cookies + localStorage)
-        authService.logout();
+        await authService.logout();
         
         // Clear Redux state
         dispatch(logoutAction());

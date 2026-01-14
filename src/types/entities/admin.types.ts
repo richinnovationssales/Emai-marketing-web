@@ -29,4 +29,5 @@ export interface AdminLoginDTO {
 export interface AuthResponse {
     user: Admin;
     token: string;
+    refreshToken?: string;
 }

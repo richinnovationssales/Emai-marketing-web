@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { CampaignForm } from '@/components/campaigns/CampaignForm';
+import { CampaignForm } from "@/components/campaigns/CampaignForm";
 
 export default function CreateCampaignPage() {
   return (
-    <div className="py-8 px-4">
+    <div className="py-6 px-4 md:px-6">
       <CampaignForm />
     </div>
   );
