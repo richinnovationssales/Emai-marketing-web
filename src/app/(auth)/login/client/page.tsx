@@ -52,7 +52,7 @@ export default function ClientLoginPage() {
       // Store credentials in Redux and localStorage
       dispatch(setCredentials({
         user: response.user,
-        token: response.token,
+        token: response.accessToken,
       }));
 
       toast.success('Welcome back!', {

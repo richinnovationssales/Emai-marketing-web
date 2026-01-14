@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Download, Mail, Users, TrendingUp } from "lucide-react";
 
 import {
@@ -122,8 +122,10 @@ const fetchDashboardData = async (): Promise<DashboardData> => {
 export default function ClientDashboard() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
+  const fetchedRef = useRef(false);
 
   useEffect(() => {
+    if (fetchedRef.current) return;
     fetchDashboardData().then((res) => {
       setData(res);
       setLoading(false);
