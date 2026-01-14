@@ -29,9 +29,9 @@ export interface UserLoginDTO {
 }
 
 export interface UserAuthResponse {
-    user: User;
-    token: string;
+  accessToken: string;
+  refreshToken: string;
+  user: User;
 }
-
 export type CreateUserData = CreateUserDTO;
 export type UpdateUserData = UpdateUserDTO;

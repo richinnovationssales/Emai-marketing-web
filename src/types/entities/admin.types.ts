@@ -1,12 +1,9 @@
 import { AdminRole } from '../enums/admin-role.enum';
 
 export interface Admin {
-    id: string;
-    email: string;
-    role: AdminRole;
-    isActive: boolean;
-    createdAt: string;
-    updatedAt: string;
+  id: string;
+  email: string;
+  role: "SUPER_ADMIN" | string;
 }
 
 export interface CreateAdminDTO {
@@ -26,7 +23,14 @@ export interface AdminLoginDTO {
     isSuperAdmin: boolean;
 }
 
+// export interface AuthResponse {
+//     user: Admin;
+//     token: string;
+// }
+
+
 export interface AuthResponse {
-    user: Admin;
-    token: string;
+  accessToken: string;
+  refreshToken: string;
+  admin: Admin;
 }
