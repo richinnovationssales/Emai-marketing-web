@@ -92,6 +92,13 @@ export interface Client {
     planStartDate: string | null;
     planRenewalDate: string | null;
     remainingMessages: number | null;
+    // Mailgun domain configuration fields
+    registrationEmail: string | null;
+    mailgunDomain: string | null;
+    mailgunFromEmail: string | null;
+    mailgunFromName: string | null;
+    mailgunVerified: boolean;
+    mailgunVerifiedAt: string | null;
     createdAt: string;
     updatedAt: string;
 }
@@ -112,6 +119,7 @@ export interface CreateClientDTO {
     planId: string;
     adminEmail: string;
     adminPassword: string;
+    registrationEmail?: string; // Optional: defaults to adminEmail if not provided
     customFields?: CustomFieldDefinition[];
 }
 

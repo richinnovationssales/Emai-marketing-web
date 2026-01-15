@@ -1,12 +1,29 @@
 "use client";
 
-import { useCampaign } from "@/lib/api/hooks/useCampaigns";
-import { Loader2, Edit2, Calendar, Users, Mail } from "lucide-react";
+import {
+  useCampaign,
+  useSubmitCampaign,
+  useApproveCampaign,
+} from "@/lib/api/hooks/useCampaigns";
+import {
+  Loader2,
+  Edit2,
+  Calendar,
+  Users,
+  Mail,
+  CheckCircle,
+  Send,
+} from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import CampaignStatusBadge from "@/components/campaigns/CampaignStatusBadge";
+import { useAppSelector } from "@/store/hooks";
+import { selectCurrentUser } from "@/store/slices/auth.slice";
+import { CampaignStatus } from "@/types/enums/campaign-status.enum";
+import { UserRole } from "@/types/enums/user-role.enum";
+import { AdminRole } from "@/types/enums/admin-role.enum";
 import { format } from "date-fns";
 import dynamic from "next/dynamic";
 
@@ -33,6 +50,28 @@ export default function ViewCampaignPage() {
     isLoading,
     isError,
   } = useCampaign(params.id as string);
+
+  const currentUser = useAppSelector(selectCurrentUser);
+  const submitCampaign = useSubmitCampaign();
+  const approveCampaign = useApproveCampaign();
+
+  const canApprove =
+    currentUser?.role === UserRole.CLIENT_SUPER_ADMIN ||
+    currentUser?.role === UserRole.CLIENT_ADMIN ||
+    currentUser?.role === AdminRole.SUPER_ADMIN ||
+    currentUser?.role === AdminRole.ADMIN;
+
+  const handleApprove = () => {
+    if (campaign?.id) {
+      approveCampaign.mutate(campaign.id);
+    }
+  };
+
+  const handleSubmit = () => {
+    if (campaign?.id) {
+      submitCampaign.mutate(campaign.id);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -80,6 +119,33 @@ export default function ViewCampaignPage() {
             <Edit2 className="mr-2 h-4 w-4" />
             Edit Campaign
           </Button>
+
+          {campaign.status === CampaignStatus.DRAFT && (
+            <Button onClick={handleSubmit} disabled={submitCampaign.isPending}>
+              {submitCampaign.isPending ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Send className="mr-2 h-4 w-4" />
+              )}
+              Submit for Approval
+            </Button>
+          )}
+
+          {campaign.status === CampaignStatus.PENDING_APPROVAL &&
+            canApprove && (
+              <Button
+                onClick={handleApprove}
+                disabled={approveCampaign.isPending}
+                className="bg-green-600 hover:bg-green-700"
+              >
+                {approveCampaign.isPending ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <CheckCircle className="mr-2 h-4 w-4" />
+                )}
+                Approve Campaign
+              </Button>
+            )}
         </div>
       </div>
 

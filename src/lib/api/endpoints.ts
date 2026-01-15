@@ -60,5 +60,9 @@
     BASE: '/admin/users',
     BY_ID: (id: string) => `/admin/users/${id}`,
   },
+  DOMAIN: {
+    BASE: '/client/domain',
+    HISTORY: '/client/domain/history',
+  },
 };
 
