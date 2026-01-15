@@ -33,7 +33,10 @@ import { GroupSelector } from "./GroupSelector";
 import { TemplateSelector } from "./TemplateSelector";
 import { RecurringScheduleForm } from "./RecurringScheduleForm";
 import { CampaignPreview } from "./CampaignPreview";
-import { useCreateCampaign } from "@/lib/api/hooks/useCampaigns";
+import {
+  useCreateCampaign,
+  useUpdateCampaign,
+} from "@/lib/api/hooks/useCampaigns";
 import { Template } from "@/types/entities/template.types";
 import { RecurringFrequency } from "@/types/entities/campaign.types";
 
@@ -71,6 +74,7 @@ const campaignSchema = z.object({
   recurringStartDate: z.string().optional(),
   recurringEndDate: z.string().optional(),
   customCronExpression: z.string().optional(),
+  sendImmediately: z.boolean().default(true),
 });
 
 type CampaignFormValues = z.infer<typeof campaignSchema>;
@@ -84,6 +88,7 @@ interface CampaignFormProps {
 export function CampaignForm({
   mode = "create",
   initialData,
+  campaignId,
 }: CampaignFormProps) {
   const router = useRouter();
   const [showPreview, setShowPreview] = useState(false);
@@ -92,6 +97,8 @@ export function CampaignForm({
   >();
 
   const createCampaign = useCreateCampaign();
+  const updateCampaign = useUpdateCampaign();
+  const isSubmitting = createCampaign.isPending || updateCampaign.isPending;
 
   const form = useForm<CampaignFormValues>({
     resolver: zodResolver(campaignSchema),
@@ -105,6 +112,7 @@ export function CampaignForm({
       recurringTime: "09:00",
       recurringTimezone: "Asia/Kolkata",
       recurringDaysOfWeek: [],
+      sendImmediately: true,
       ...initialData,
     },
   });
@@ -167,13 +175,25 @@ export function CampaignForm({
           customCronExpression: data.customCronExpression,
         }),
       }),
+      ...(!data.isRecurring && { sendImmediately: data.sendImmediately }), // Only applicable if not recurring
     };
 
-    createCampaign.mutate(payload, {
-      onSuccess: () => {
-        router.push("/client/campaigns");
-      },
-    });
+    if (mode === "edit" && campaignId) {
+      updateCampaign.mutate(
+        { id: campaignId, data: payload },
+        {
+          onSuccess: () => {
+            router.push("/client/campaigns");
+          },
+        }
+      );
+    } else {
+      createCampaign.mutate(payload, {
+        onSuccess: () => {
+          router.push("/client/campaigns");
+        },
+      });
+    }
   }
 
   return (
@@ -353,6 +373,32 @@ export function CampaignForm({
               <Card className="sticky bottom-6">
                 <CardContent className="pt-6">
                   <div className="flex flex-col gap-3">
+                    {/* Send Immediately Checkbox */}
+                    {!isRecurring && (
+                      <FormField
+                        control={form.control}
+                        name="sendImmediately"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                            <FormControl>
+                              <input
+                                type="checkbox"
+                                checked={field.value}
+                                onChange={field.onChange}
+                                className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                              />
+                            </FormControl>
+                            <div className="space-y-1 leading-none">
+                              <FormLabel>Send Immediately</FormLabel>
+                              <FormDescription>
+                                If unchecked, campaign will be saved as draft
+                              </FormDescription>
+                            </div>
+                          </FormItem>
+                        )}
+                      />
+                    )}
+
                     {content && (
                       <Button
                         type="button"
@@ -380,10 +426,14 @@ export function CampaignForm({
                       <Button
                         type="submit"
                         className="flex-1"
-                        disabled={createCampaign.isPending}
+                        disabled={isSubmitting}
                       >
-                        {createCampaign.isPending ? (
-                          "Creating..."
+                        {isSubmitting ? (
+                          mode === "create" ? (
+                            "Creating..."
+                          ) : (
+                            "Saving..."
+                          )
                         ) : (
                           <>
                             <Save className="mr-2 h-4 w-4" />
