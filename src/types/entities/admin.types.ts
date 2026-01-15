@@ -4,6 +4,9 @@ export interface Admin {
   id: string;
   email: string;
   role: "SUPER_ADMIN" | string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface CreateAdminDTO {
