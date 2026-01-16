@@ -61,19 +61,19 @@ apiClient.interceptors.response.use(
 
             try {
                 // Dynamically import to avoid circular dependency
-                const { authService } = await import('./services/auth.service');
-                const newAccessToken = await authService.refreshAccessToken();
+                // const { authService } = await import('./services/auth.service');
+                // const newAccessToken = await authService.refreshAccessToken();
                 
-                // Update the failed request with new token
-                if (originalRequest.headers) {
-                    originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
-                }
+                // // Update the failed request with new token
+                // if (originalRequest.headers) {
+                //     originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+                // }
                 
-                processQueue(null, newAccessToken);
-                isRefreshing = false;
+                // processQueue(null, newAccessToken);
+                // isRefreshing = false;
                 
                 // Retry the original request
-                return apiClient(originalRequest);
+                // return apiClient(originalRequest);
             } catch (refreshError) {
                 processQueue(refreshError, null);
                 isRefreshing = false;

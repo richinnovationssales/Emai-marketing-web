@@ -46,7 +46,7 @@ export function ClientsTable({
         client?.plan?.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    if (loading) {
+    if (loading ) {
         return (
             <div className="flex items-center justify-center py-8">
                 <p className="text-gray-500">Loading clients...</p>
