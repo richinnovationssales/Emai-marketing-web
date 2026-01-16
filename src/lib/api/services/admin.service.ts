@@ -20,7 +20,7 @@ export const adminService = {
   },
 
   updateAdmin: async (id: string, adminData: UpdateAdminDTO): Promise<ApiResponse<Admin>> => {
-    const { data } = await apiClient.patch(API_ENDPOINTS.ADMINS.BY_ID(id), adminData);
+    const { data } = await apiClient.patch(API_ENDPOINTS.ADMINS.TOGGLE_STATUS(id), adminData);
     return data;
   },
 

@@ -59,6 +59,7 @@
   ADMINS: {
     BASE: '/admin/users',
     BY_ID: (id: string) => `/admin/users/${id}`,
+    TOGGLE_STATUS: (id: string) => `/admin/users/${id}/toggle-status`,
   },
   DOMAIN: {
     BASE: '/client/domain',
