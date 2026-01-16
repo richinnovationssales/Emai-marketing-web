@@ -59,7 +59,7 @@ export default function LoginForm({
       dispatch(
         setCredentials({
           user: response.user,
-          token: response.token,
+          token: response?.accessToken,
         })
       );
 

@@ -50,3 +50,16 @@ export interface ContactFilters {
     groupId?: string;
     search?: string;
 }
+
+
+export interface BaseContact {
+  id: string;
+  email: string;
+  firstName?: string | null;
+  lastName?: string | null;
+  createdAt?: string;
+  groupId?: string | null;
+
+  // Dynamic fields support
+  customFields?: Record<string, any>;
+}

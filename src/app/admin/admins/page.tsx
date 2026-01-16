@@ -67,6 +67,7 @@ export default function AdminsPage() {
 
   const handleStatusToggle = async (id: string, currentStatus: boolean) => {
     try {
+      console.log("Toggling status for admin ID:", id, "Current status:", currentStatus);
       await dispatch(toggleAdminStatusAction({ id, isActive: !currentStatus })).unwrap();
       toast.success(`Admin ${!currentStatus ? 'activated' : 'deactivated'} successfully`);
     } catch (error: any) {

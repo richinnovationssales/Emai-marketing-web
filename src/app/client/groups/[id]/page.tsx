@@ -48,6 +48,10 @@ export default function GroupDetailPage() {
     };
   }, [groupId, dispatch]);
 
+
+
+  
+
   const handleRemoveContact = async (contactId: string) => {
     // TODO: Implement remove contact from group API call
     toast.info('Remove contact functionality will be implemented with contact-group API');

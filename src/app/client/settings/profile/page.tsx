@@ -1,5 +1,4 @@
 import { Separator } from "@/components/ui/separator";
-import { ProfileForm } from "@/components/client/settings/profile-form"; // Assuming this might exist or I'll create a placeholder for now
 
 export default function SettingsProfilePage() {
   return (

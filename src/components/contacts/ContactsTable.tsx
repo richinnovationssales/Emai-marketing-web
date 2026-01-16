@@ -1,6 +1,6 @@
 'use client';
 
-import { Contact } from '@/types/entities/contact.types';
+import { BaseContact, Contact } from '@/types/entities/contact.types';
 import {
     Table,
     TableBody,
@@ -38,7 +38,7 @@ import { toast } from 'sonner';
 import { Users, UserMinus, Trash2, Edit2 } from 'lucide-react';
 
 interface ContactsTableProps {
-    data: Contact[];
+    data: BaseContact[];
     onDelete?: (id: string) => void;
     groupId?: string; // If present, we are in a group context
 }
@@ -263,7 +263,7 @@ export function ContactsTable({ data, onDelete, groupId }: ContactsTableProps) {
                                     <TableCell>{phone || '-'}</TableCell>
                                     <TableCell>{contact?.groupId || '-'}</TableCell>
                                     <TableCell className="text-right space-x-2">
-                                        <Link href={`/client/contacts/${contact?.id}/edit`} onClick={() => dispatch(setSelectedContact(contact))}>
+                                        <Link href={`/client/contacts/${contact?.id}/edit`} >
                                             <Button variant="ghost" size="icon" className="h-8 w-8">
                                                 <Edit2 className="h-4 w-4" />
                                             </Button>
