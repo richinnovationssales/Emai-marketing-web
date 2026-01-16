@@ -1,12 +1,19 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import Link from 'next/link';
-import { Plus, Search, MoreHorizontal, Trash2, CheckCircle, XCircle } from 'lucide-react';
-import { toast } from 'sonner';
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import {
+  Plus,
+  Search,
+  MoreHorizontal,
+  Trash2,
+  CheckCircle,
+  XCircle,
+} from "lucide-react";
+import { toast } from "sonner";
 
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -14,7 +21,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
+} from "@/components/ui/table";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,11 +29,17 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { ROUTES } from '@/lib/constants/routes';
-import { useAppDispatch, useAppSelector } from '@/store/hooks';
+} from "@/components/ui/dropdown-menu";
+import { Badge } from "@/components/ui/badge";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import { ROUTES } from "@/lib/constants/routes";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import {
   fetchAdmins,
   deleteAdmin as deleteAdminAction,
@@ -34,16 +47,16 @@ import {
   selectAdmins,
   selectAdminLoading,
   selectAdminInitialized,
-} from '@/store/slices/admin.slice';
-import { getErrorMessage } from '@/lib/utils/error';
+} from "@/store/slices/admin.slice";
+import { getErrorMessage } from "@/lib/utils/error";
 
 export default function AdminsPage() {
   const dispatch = useAppDispatch();
   const admins = useAppSelector(selectAdmins);
   const loading = useAppSelector(selectAdminLoading);
   const initialized = useAppSelector(selectAdminInitialized);
-  
-  const [searchQuery, setSearchQuery] = useState('');
+
+  const [searchQuery, setSearchQuery] = useState("");
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -54,31 +67,44 @@ export default function AdminsPage() {
   }, [dispatch, initialized]);
 
   const handleDelete = async (id: string) => {
-    if (confirm('Are you sure you want to delete this admin?')) {
+    if (confirm("Are you sure you want to delete this admin?")) {
       try {
         await dispatch(deleteAdminAction(id)).unwrap();
-        toast.success('Admin deleted successfully');
+        toast.success("Admin deleted successfully");
       } catch (error: any) {
-        console.error('Failed to delete admin:', error);
-        toast.error(getErrorMessage(error, 'Failed to delete admin'));
+        console.error("Failed to delete admin:", error);
+        toast.error(getErrorMessage(error, "Failed to delete admin"));
       }
     }
   };
 
   const handleStatusToggle = async (id: string, currentStatus: boolean) => {
     try {
-      console.log("Toggling status for admin ID:", id, "Current status:", currentStatus);
-      await dispatch(toggleAdminStatusAction({ id, isActive: !currentStatus })).unwrap();
-      toast.success(`Admin ${!currentStatus ? 'activated' : 'deactivated'} successfully`);
+      console.log(
+        "Toggling status for admin ID:",
+        id,
+        "Current status:",
+        currentStatus
+      );
+      await dispatch(
+        toggleAdminStatusAction({ id, isActive: !currentStatus })
+      ).unwrap();
+      toast.success(
+        `Admin ${!currentStatus ? "activated" : "deactivated"} successfully`
+      );
     } catch (error: any) {
-      console.error('Failed to update admin status:', error);
-      toast.error(getErrorMessage(error, 'Failed to update admin status'));
+      console.error("Failed to update admin status:", error);
+      toast.error(getErrorMessage(error, "Failed to update admin status"));
     }
   };
 
-  const filteredAdmins = admins?.filter(admin =>
-    admin?.email.toLowerCase().includes(searchQuery.toLowerCase())
-  ) || [];
+  const filteredAdmins =
+    admins?.filter((admin) =>
+      admin?.email.toLowerCase().includes(searchQuery.toLowerCase())
+    ) || [];
+
+  console.log("filteredAdmins:", filteredAdmins);
+  console.log("adminsss:", admins);
 
   return (
     <div className="space-y-6">
@@ -143,7 +169,9 @@ export default function AdminsPage() {
                 ) : (
                   filteredAdmins?.map((admin) => (
                     <TableRow key={admin.id}>
-                      <TableCell className="font-medium">{admin.email}</TableCell>
+                      <TableCell className="font-medium">
+                        {admin.email}
+                      </TableCell>
                       <TableCell>
                         <Badge variant="outline">{admin.role}</Badge>
                       </TableCell>
@@ -156,7 +184,9 @@ export default function AdminsPage() {
                           </Badge>
                       </TableCell> */}
                       <TableCell>
-                        {mounted ? new Date(admin.createdAt).toLocaleDateString() : '—'}
+                        {mounted
+                          ? new Date(admin.createdAt).toLocaleDateString()
+                          : "—"}
                       </TableCell>
                       <TableCell className="text-right">
                         <DropdownMenu>
@@ -169,20 +199,26 @@ export default function AdminsPage() {
                           <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Actions</DropdownMenuLabel>
                             <DropdownMenuItem
-                              onClick={() => handleStatusToggle(admin.id, admin.isActive)}
+                              onClick={() => {
+                                console.log("Clicked status toggle for admin ID:", admin.id);
+                                console.log("Current status isActive:", admin.isActive);
+                                handleStatusToggle(admin.id, admin.isActive);
+                              }}
                             >
                               {admin.isActive ? (
                                 <>
-                                  <XCircle className="mr-2 h-4 w-4" /> Deactivate
+                                  <XCircle className="mr-2 h-4 w-4" />{" "}
+                                  Deactivate
                                 </>
                               ) : (
                                 <>
-                                  <CheckCircle className="mr-2 h-4 w-4" /> Activate
+                                  <CheckCircle className="mr-2 h-4 w-4" />{" "}
+                                  Activate
                                 </>
                               )}
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem 
+                            <DropdownMenuItem
                               className="text-destructive"
                               onClick={() => handleDelete(admin.id)}
                             >
