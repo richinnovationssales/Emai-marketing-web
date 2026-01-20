@@ -1,7 +1,7 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 
 const apiClient = axios.create({
-    baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || 'https://email-marketing-crm.onrender.com/api',
+    baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || 'http://54.66.229.118:4000/api',
     // https://email-marketing-crm.onrender.com/
     // https://email-marketing-crm.onrender.com/
     headers: {
