@@ -2,6 +2,7 @@
 
 import { Provider } from 'react-redux';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { store } from '@/store';
 import { Toaster } from 'sonner';
 import { useState, useEffect } from 'react';
@@ -17,7 +18,10 @@ export function Providers({ children }: { children: React.ReactNode }) {
           queries: {
             staleTime: 60 * 1000, 
             refetchOnWindowFocus: false,
+            refetchOnMount: false,
+            refetchOnReconnect: false,
             retry: 1,
+            retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
           },
         },
       })
@@ -39,6 +43,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
           {children}
           <Toaster position="top-right" richColors />
         </ThemeProvider>
+         {process.env.NODE_ENV === 'development' && (
+          <ReactQueryDevtools initialIsOpen={false} />
+        )}
       </QueryClientProvider>
     </Provider>
   );

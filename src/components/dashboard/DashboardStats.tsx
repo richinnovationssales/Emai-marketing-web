@@ -1,34 +1,19 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Users, Mail, TrendingUp, AlertCircle } from "lucide-react";
+import { useQuery } from '@tanstack/react-query';
+import { Users, TrendingUp } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { dashboardService } from "@/lib/api/services/dashboard.service";
+import { AdminDashboardResponse } from '@/types/entities/dashboard.types';
 
 export function DashboardStats() {
-  const [stats, setStats] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const { data: stats, isLoading } = useQuery<AdminDashboardResponse>({
+    queryKey: ['adminDashboard'],
+    queryFn: dashboardService.getAdminDashboard,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
 
-  useEffect(() => {
-    async function loadStats() {
-      try {
-        const data = await dashboardService.getAdminDashboard();
-        setStats(data);
-      } catch (e) {
-        console.error("Failed to load stats", e);
-        // Fallback mock data for visualization if API fails
-        setStats({
-          userCount: 0,
-          campaignCount: 0,
-        });
-      } finally {
-        setLoading(false);
-      }
-    }
-    loadStats();
-  }, []);
-
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {[1, 2, 3, 4].map((i) => (
