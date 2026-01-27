@@ -1,10 +1,7 @@
-'use client';
-
 import { Suspense } from 'react';
 import { DashboardStats } from '@/components/dashboard/DashboardStats';
 import { CampaignsChart } from '@/components/dashboard/CampaignsChart';
 import { RecentClients } from '@/components/dashboard/RecentClients';
-import PageContainer from '@/components/layout/PageContainer';
 import { Button } from '@/components/ui/button';
 import { Download } from 'lucide-react';
 
