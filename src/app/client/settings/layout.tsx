@@ -3,7 +3,10 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { User, Mail, CreditCard, Users, Settings, Shield } from "lucide-react";
+import { useAppSelector } from "@/store/hooks";
+import { selectCurrentUser } from "@/store/slices/auth.slice";
+import { UserRole } from "@/types/enums/user-role.enum";
+import { User, Mail, CreditCard, Users, Globe, ScrollText} from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 
@@ -11,7 +14,14 @@ interface SettingsLayoutProps {
   children: React.ReactNode;
 }
 
-const sidebarNavItems = [
+interface NavItem {
+  title: string;
+  href: string;
+  icon: React.ComponentType<{ className?: string }>;
+  roles?: UserRole[];
+}
+
+const sidebarNavItems: NavItem[] = [
   {
     title: "Profile",
     href: "/client/settings/profile",
@@ -21,6 +31,18 @@ const sidebarNavItems = [
     title: "Email Configuration",
     href: "/client/settings/email",
     icon: Mail,
+  },
+  {
+    title: "Domain Settings",
+    href: "/client/settings/domain",
+    icon: Globe,
+    roles: [UserRole.CLIENT_SUPER_ADMIN],
+  },
+  {
+    title: "Domain Logs",
+    href: "/client/settings/domain-logs",
+    icon: ScrollText,
+    roles: [UserRole.CLIENT_SUPER_ADMIN],
   },
   {
     title: "Plan & Billing",
@@ -36,6 +58,12 @@ const sidebarNavItems = [
 
 export default function SettingsLayout({ children }: SettingsLayoutProps) {
   const pathname = usePathname();
+  const currentUser = useAppSelector(selectCurrentUser);
+  const userRole = currentUser?.role as UserRole | undefined;
+
+  const visibleNavItems = sidebarNavItems.filter(
+    (item) => !item.roles || (userRole && item.roles.includes(userRole))
+  );
 
   return (
     <div className="space-y-6 flex flex-col h-full">
@@ -49,7 +77,7 @@ export default function SettingsLayout({ children }: SettingsLayoutProps) {
       <div className="flex flex-col space-y-8 lg:flex-row lg:space-x-12 lg:space-y-0 h-full">
         <aside className="-mx-4 lg:w-1/5 overflow-y-auto">
           <nav className="flex space-x-2 lg:flex-col lg:space-x-0 lg:space-y-1">
-            {sidebarNavItems.map((item) => (
+            {visibleNavItems.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}

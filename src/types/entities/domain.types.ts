@@ -31,7 +31,9 @@ export interface DomainHistoryItem {
     newDomain?: string | null;
     previousFromEmail?: string | null;
     newFromEmail?: string | null;
-  };
+    previousFromName?: string | null;
+    newFromName?: string | null;
+  } | null;
   createdAt: string;
 }
 

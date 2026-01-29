@@ -43,6 +43,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import {
   Loader2,
+  Globe,
   Mail,
   Shield,
   RefreshCw,
@@ -65,7 +66,7 @@ const domainFormSchema = z.object({
 
 type DomainFormValues = z.infer<typeof domainFormSchema>;
 
-export default function EmailSettingsPage() {
+export default function DomainSettingsPage() {
   const currentUser = useAppSelector(selectCurrentUser);
   const { data: domainConfig, isLoading, refetch } = useDomainConfig();
   const updateDomain = useUpdateDomain();
@@ -80,7 +81,6 @@ export default function EmailSettingsPage() {
     },
   });
 
-  // Populate form when domain config loads
   useEffect(() => {
     if (domainConfig) {
       form.reset({
@@ -91,18 +91,17 @@ export default function EmailSettingsPage() {
     }
   }, [domainConfig, form]);
 
-  // Check if user has permission
   const hasPermission = currentUser?.role === UserRole.CLIENT_SUPER_ADMIN;
 
   if (!hasPermission) {
     return (
-      <div className="container mx-auto py-8">
+      <div className="space-y-6">
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
             <Shield className="h-12 w-12 text-muted-foreground mb-4" />
             <h2 className="text-xl font-semibold mb-2">Access Denied</h2>
             <p className="text-muted-foreground text-center">
-              Only Client Super Admins can configure email domain settings.
+              Only Client Super Admins can configure domain settings.
             </p>
           </CardContent>
         </Card>
@@ -112,7 +111,7 @@ export default function EmailSettingsPage() {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto py-8">
+      <div className="space-y-6">
         <div className="flex items-center justify-center py-12">
           <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
         </div>
@@ -133,15 +132,15 @@ export default function EmailSettingsPage() {
   };
 
   return (
-    <div className="container mx-auto py-8 space-y-6">
+    <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Email Settings</h1>
-          <p className="text-muted-foreground mt-1">
-            Configure your email sender domain and settings
+          <h3 className="text-lg font-medium">Domain Settings</h3>
+          <p className="text-sm text-muted-foreground">
+            Configure your custom Mailgun domain for sending campaigns.
           </p>
         </div>
-        <Button variant="outline" onClick={() => refetch()}>
+        <Button variant="outline" size="sm" onClick={() => refetch()}>
           <RefreshCw className="mr-2 h-4 w-4" />
           Refresh
         </Button>
@@ -180,7 +179,10 @@ export default function EmailSettingsPage() {
           {/* Domain Configuration */}
           <Card>
             <CardHeader>
-              <CardTitle>Custom Domain Configuration</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <Globe className="h-5 w-5" />
+                Custom Domain Configuration
+              </CardTitle>
               <CardDescription>
                 Configure a custom Mailgun domain for sending emails
               </CardDescription>
@@ -222,7 +224,8 @@ export default function EmailSettingsPage() {
                           />
                         </FormControl>
                         <FormDescription>
-                          The email address that will appear in the "From" field
+                          The email address that will appear in the
+                          &quot;From&quot; field
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
@@ -298,9 +301,8 @@ export default function EmailSettingsPage() {
           </Card>
         </div>
 
-        {/* Right Sidebar */}
+        {/* Right Sidebar - Verification Status */}
         <div className="space-y-6">
-          {/* Verification Status */}
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">Verification Status</CardTitle>
@@ -338,6 +340,32 @@ export default function EmailSettingsPage() {
             </CardContent>
           </Card>
 
+          {/* Current Config Summary */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Current Configuration</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div>
+                <p className="text-sm text-muted-foreground">Domain</p>
+                <p className="text-sm font-medium">
+                  {domainConfig?.mailgunDomain || "Not configured"}
+                </p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">From Email</p>
+                <p className="text-sm font-medium">
+                  {domainConfig?.mailgunFromEmail || "Not configured"}
+                </p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">From Name</p>
+                <p className="text-sm font-medium">
+                  {domainConfig?.mailgunFromName || "Not configured"}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>
