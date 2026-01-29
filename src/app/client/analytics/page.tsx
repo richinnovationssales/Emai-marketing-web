@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Mail,
   TrendingUp,
@@ -31,6 +31,7 @@ export default function AnalyticsPage() {
   const [error, setError] = useState<string | null>(null);
   const [startDate, setStartDate] = useState<Date | undefined>();
   const [endDate, setEndDate] = useState<Date | undefined>();
+  const fetchedRef = useRef(false);
 
   const fetchOverview = async () => {
     try {
@@ -52,6 +53,8 @@ export default function AnalyticsPage() {
   };
 
   useEffect(() => {
+    if (!startDate && !endDate && fetchedRef.current) return;
+    if (!startDate && !endDate) fetchedRef.current = true;
     fetchOverview();
   }, [startDate, endDate]);
 

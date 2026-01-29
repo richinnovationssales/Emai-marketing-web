@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { analyticsService } from "@/lib/api/services/analytics.service";
 import { CampaignAnalyticsSummary } from "@/types/entities/analytics.types";
 import { CampaignPerformanceTable } from "@/components/analytics/CampaignPerformanceTable";
@@ -10,8 +10,11 @@ export default function CampaignsAnalyticsPage() {
   const [campaigns, setCampaigns] = useState<CampaignAnalyticsSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const fetchedRef = useRef(false);
 
   useEffect(() => {
+    if (fetchedRef.current) return;
+    fetchedRef.current = true;
     const fetchCampaigns = async () => {
       try {
         setLoading(true);

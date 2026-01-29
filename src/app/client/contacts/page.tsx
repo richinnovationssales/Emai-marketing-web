@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch } from '@/store';
 import { fetchContacts, selectContacts, selectContactLoading, selectNextCursor, deleteContact } from '@/store/slices/contact.slice';
@@ -15,8 +15,11 @@ export default function ContactsPage() {
     const contacts = useSelector(selectContacts);
     const isLoading = useSelector(selectContactLoading);
     const nextCursor = useSelector(selectNextCursor);
+    const fetchedRef = useRef(false);
 
     useEffect(() => {
+        if (fetchedRef.current) return;
+        fetchedRef.current = true;
         dispatch(fetchContacts({ limit: 20 }));
     }, [dispatch]);
 
