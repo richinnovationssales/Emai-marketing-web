@@ -65,5 +65,9 @@
     BASE: '/client/domain',
     HISTORY: '/client/domain/history',
   },
+  ADMIN_DOMAIN: {
+    BASE: (clientId: string) => `/admin/clients/${clientId}/domain`,
+    HISTORY: (clientId: string) => `/admin/clients/${clientId}/domain/history`,
+  },
 };
 

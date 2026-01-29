@@ -50,3 +50,32 @@ export interface UpdateDomainResponse {
     mailgunVerified: boolean;
   };
 }
+
+// Admin domain types
+export interface AdminDomainConfig {
+  clientId: string;
+  clientName: string;
+  registrationEmail: string | null;
+  mailgunDomain: string | null;
+  mailgunFromEmail: string | null;
+  mailgunFromName: string | null;
+  mailgunVerified: boolean;
+  mailgunVerifiedAt: string | null;
+}
+
+export interface AdminUpdateDomainResponse {
+  message: string;
+  config: {
+    clientId: string;
+    mailgunDomain: string | null;
+    mailgunFromEmail: string | null;
+    mailgunFromName: string | null;
+    mailgunVerified: boolean;
+  };
+}
+
+export interface AdminDomainHistoryResponse {
+  clientId: string;
+  clientName: string;
+  history: DomainHistoryItem[];
+}

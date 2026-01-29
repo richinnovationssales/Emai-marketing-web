@@ -1,9 +1,11 @@
 'use client';
 
 import React from 'react';
-import { useAppDispatch } from '@/store/hooks';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { selectCurrentUser } from '@/store/slices/auth.slice';
 import { approveClient, deactivateClient, reactivateClient, deleteClient } from '@/store/slices/admin.slice';
 import { ClientDetails } from '@/types/entities/client.types';
+import { AdminRole } from '@/types/enums/admin-role.enum';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -14,7 +16,7 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { CheckCircle, XCircle, MoreVertical, Power, PowerOff, Trash2 } from 'lucide-react';
+import { CheckCircle, XCircle, MoreVertical, Power, PowerOff, Trash2, Globe } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 interface ClientDetailsHeaderProps {
@@ -24,6 +26,8 @@ interface ClientDetailsHeaderProps {
 export function ClientDetailsHeader({ client }: ClientDetailsHeaderProps) {
     const dispatch = useAppDispatch();
     const router = useRouter();
+    const currentUser = useAppSelector(selectCurrentUser);
+    const isSuperAdmin = currentUser?.role === AdminRole.SUPER_ADMIN;
 
     const handleApprove = () => {
         if (confirm('Are you sure you want to approve this client?')) {
@@ -98,6 +102,15 @@ export function ClientDetailsHeader({ client }: ClientDetailsHeaderProps) {
                             <Power className="h-4 w-4 mr-2" />
                             Reactivate
                         </DropdownMenuItem>
+                    )}
+                    {isSuperAdmin && (
+                        <>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={() => router.push(`/admin/clients/${client.id}/domain`)}>
+                                <Globe className="h-4 w-4 mr-2" />
+                                Domain Settings
+                            </DropdownMenuItem>
+                        </>
                     )}
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={handleDelete} className="text-destructive">
