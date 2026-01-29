@@ -126,6 +126,7 @@ export default function ClientDashboard() {
 
   useEffect(() => {
     if (fetchedRef.current) return;
+    fetchedRef.current = true;
     fetchDashboardData().then((res) => {
       setData(res);
       setLoading(false);
