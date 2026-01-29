@@ -1,7 +1,14 @@
 "use client";
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Download, Mail, Users, TrendingUp } from "lucide-react";
+import {
+  Download,
+  Mail,
+  Users,
+  TrendingUp,
+  CalendarIcon,
+  Loader2,
+} from "lucide-react";
 
 import {
   Area,
@@ -15,8 +22,16 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 import { dashboardService } from "@/lib/api/services/dashboard.service";
+import { exportDashboardToExcel } from "@/lib/utils/export-utils";
 import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 
 /* ===================== TYPES ===================== */
 
@@ -40,13 +55,12 @@ interface DashboardData {
   campaignStats: CampaignStat[];
 }
 
-/* ===================== MOCK API ===================== */
+/* ===================== API ===================== */
 
 const fetchDashboardData = async (): Promise<DashboardData> => {
   try {
     const response = await dashboardService.getClientDashboard();
 
-    // Transform API response to match dashboard structure
     const stats: DashboardStats = {
       contacts: response.contacts.length,
       campaigns: response.campaigns.length,
@@ -57,10 +71,9 @@ const fetchDashboardData = async (): Promise<DashboardData> => {
             0)
         );
       }, 0),
-      emailsRemaining: 0, // This should come from plan data if available
+      emailsRemaining: 0,
     };
 
-    // Calculate campaign stats from campaigns with email events
     const campaignStats: CampaignStat[] = response.campaigns
       .filter((c) => c.sentAt)
       .map((campaign) => {
@@ -84,7 +97,6 @@ const fetchDashboardData = async (): Promise<DashboardData> => {
         };
       });
 
-    // Group campaigns by month
     const campaignsPerMonth = response.campaigns.reduce((acc, campaign) => {
       const month = format(new Date(campaign.createdAt), "MMMM");
       const existing = acc.find((item) => item.month === month);
@@ -103,7 +115,6 @@ const fetchDashboardData = async (): Promise<DashboardData> => {
     };
   } catch (error) {
     console.error("Failed to fetch dashboard data:", error);
-    // Return empty data structure on error
     return {
       stats: {
         contacts: 0,
@@ -124,6 +135,12 @@ export default function ClientDashboard() {
   const [loading, setLoading] = useState(true);
   const fetchedRef = useRef(false);
 
+  // Date range state
+  const [startDate, setStartDate] = useState<Date | undefined>(undefined);
+  const [endDate, setEndDate] = useState<Date | undefined>(undefined);
+  const [datePickerOpen, setDatePickerOpen] = useState(false);
+  const [exporting, setExporting] = useState(false);
+
   useEffect(() => {
     if (fetchedRef.current) return;
     fetchedRef.current = true;
@@ -133,15 +150,33 @@ export default function ClientDashboard() {
     });
   }, []);
 
-  const areaChartData = useMemo(() => {
+  // Filter campaign stats by selected date range
+  const filteredCampaignStats = useMemo(() => {
     if (!data) return [];
+    if (!startDate && !endDate) return data.campaignStats;
 
+    return data.campaignStats.filter((c) => {
+      const campaignDate = c.date.split(" to ")[0];
+      if (!campaignDate || campaignDate === "Not sent") return false;
+      const d = new Date(campaignDate);
+      if (startDate && d < startDate) return false;
+      if (endDate) {
+        const endOfDay = new Date(endDate);
+        endOfDay.setHours(23, 59, 59, 999);
+        if (d > endOfDay) return false;
+      }
+      return true;
+    });
+  }, [data, startDate, endDate]);
+
+  // Aggregate daily performance data for chart + export
+  const areaChartData = useMemo(() => {
     const map: Record<
       string,
       { date: string; delivered: number; opened: number }
     > = {};
 
-    data.campaignStats.forEach((item) => {
+    filteredCampaignStats.forEach((item) => {
       const date = item.date.split(" to ")[0];
       if (!map[date]) {
         map[date] = { date, delivered: 0, opened: 0 };
@@ -150,8 +185,45 @@ export default function ClientDashboard() {
       map[date].opened += item.opened;
     });
 
-    return Object.values(map);
-  }, [data]);
+    return Object.values(map).sort(
+      (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+    );
+  }, [filteredCampaignStats]);
+
+  const handleDateChange = (start?: Date, end?: Date) => {
+    setStartDate(start);
+    setEndDate(end);
+  };
+
+  const handleResetDates = () => {
+    setStartDate(undefined);
+    setEndDate(undefined);
+    setDatePickerOpen(false);
+  };
+
+  const handleDownload = () => {
+    if (!data) return;
+
+    setExporting(true);
+    try {
+      const dateRange =
+        startDate && endDate
+          ? {
+              start: format(startDate, "yyyy-MM-dd"),
+              end: format(endDate, "yyyy-MM-dd"),
+            }
+          : undefined;
+
+      exportDashboardToExcel({
+        stats: data.stats,
+        campaignStats: filteredCampaignStats,
+        dailyPerformance: areaChartData,
+        dateRange,
+      });
+    } finally {
+      setExporting(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -169,10 +241,16 @@ export default function ClientDashboard() {
 
   if (!data) return null;
 
-  const { stats, campaignStats } = data;
+  const { stats } = data;
 
-  const totalDelivered = campaignStats.reduce((a, b) => a + b.delivered, 0);
-  const totalOpened = campaignStats.reduce((a, b) => a + b.opened, 0);
+  const totalDelivered = filteredCampaignStats.reduce(
+    (a, b) => a + b.delivered,
+    0
+  );
+  const totalOpened = filteredCampaignStats.reduce(
+    (a, b) => a + b.opened,
+    0
+  );
   const openRate =
     totalDelivered > 0
       ? ((totalOpened / totalDelivered) * 100).toFixed(1)
@@ -181,12 +259,85 @@ export default function ClientDashboard() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-4">
         <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
-        <Button variant="outline" size="sm">
-          <Download className="mr-2 h-4 w-4" />
-          Download Reports
-        </Button>
+        <div className="flex items-center gap-3">
+          {/* Date Range Picker */}
+          <Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className={cn(
+                  "w-[260px] justify-start text-left font-normal",
+                  !startDate && !endDate && "text-muted-foreground"
+                )}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {startDate && endDate ? (
+                  <>
+                    {format(startDate, "LLL dd, y")} -{" "}
+                    {format(endDate, "LLL dd, y")}
+                  </>
+                ) : startDate ? (
+                  <>{format(startDate, "LLL dd, y")} - Select end</>
+                ) : (
+                  "Select date range"
+                )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="end">
+              <div className="flex gap-2 p-3">
+                <div>
+                  <p className="text-sm font-medium mb-2">Start Date</p>
+                  <Calendar
+                    mode="single"
+                    selected={startDate}
+                    onSelect={(date) => handleDateChange(date, endDate)}
+                    disabled={(date) =>
+                      date > new Date() || (endDate ? date > endDate : false)
+                    }
+                  />
+                </div>
+                <div>
+                  <p className="text-sm font-medium mb-2">End Date</p>
+                  <Calendar
+                    mode="single"
+                    selected={endDate}
+                    onSelect={(date) => handleDateChange(startDate, date)}
+                    disabled={(date) =>
+                      date > new Date() ||
+                      (startDate ? date < startDate : false)
+                    }
+                  />
+                </div>
+              </div>
+              <div className="flex justify-end gap-2 p-3 border-t">
+                <Button variant="outline" size="sm" onClick={handleResetDates}>
+                  Reset
+                </Button>
+                <Button size="sm" onClick={() => setDatePickerOpen(false)}>
+                  Apply
+                </Button>
+              </div>
+            </PopoverContent>
+          </Popover>
+
+          {/* Download Button */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleDownload}
+            disabled={exporting}
+          >
+            {exporting ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <Download className="mr-2 h-4 w-4" />
+            )}
+            Download Report
+          </Button>
+        </div>
       </div>
 
       {/* Stat Cards */}
@@ -262,7 +413,15 @@ export default function ClientDashboard() {
       {/* Campaign Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Campaign Statistics</CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle>Campaign Statistics</CardTitle>
+            {(startDate || endDate) && (
+              <p className="text-sm text-muted-foreground">
+                Showing {filteredCampaignStats.length} of{" "}
+                {data.campaignStats.length} campaigns
+              </p>
+            )}
+          </div>
         </CardHeader>
         <CardContent>
           <div className="rounded-md border overflow-x-auto">
@@ -276,14 +435,25 @@ export default function ClientDashboard() {
                 </tr>
               </thead>
               <tbody>
-                {campaignStats.map((c, i) => (
-                  <tr key={i} className="border-b hover:bg-muted/40">
-                    <td className="p-4 font-medium">{c.name}</td>
-                    <td className="p-4">{c.date}</td>
-                    <td className="p-4">{c.delivered}</td>
-                    <td className="p-4">{c.opened}</td>
+                {filteredCampaignStats.length > 0 ? (
+                  filteredCampaignStats.map((c, i) => (
+                    <tr key={i} className="border-b hover:bg-muted/40">
+                      <td className="p-4 font-medium">{c.name}</td>
+                      <td className="p-4">{c.date}</td>
+                      <td className="p-4">{c.delivered}</td>
+                      <td className="p-4">{c.opened}</td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td
+                      colSpan={4}
+                      className="p-8 text-center text-muted-foreground"
+                    >
+                      No campaigns found for the selected date range.
+                    </td>
                   </tr>
-                ))}
+                )}
               </tbody>
             </table>
           </div>
@@ -327,255 +497,3 @@ function MiniStat({ title, value }: { title: string; value: string | number }) {
     </Card>
   );
 }
-
-// 'use client';
-
-// import React, { useState, useEffect } from 'react';
-// import { Download, Mail, Users, TrendingUp } from 'lucide-react';
-// import { Button } from '@/components/ui/button';
-// import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-
-// interface DashboardStats {
-//   contacts: number;
-//   campaigns: number;
-//   emailsSent: number;
-//   emailsRemaining: number;
-// }
-
-// interface CampaignStat {
-//   name: string;
-//   date: string;
-//   delivered: number;
-//   opened: number;
-// }
-
-// interface DashboardData {
-//   stats: DashboardStats;
-//   campaignsPerMonth: { month: string; count: number }[];
-//   campaignStats: CampaignStat[];
-// }
-
-// // Dummy API function
-// const fetchDashboardData = async (): Promise<DashboardData> => {
-//   // Simulate API call
-//   return new Promise((resolve) => {
-//     setTimeout(() => {
-//       resolve({
-//         stats: {
-//           contacts: 49,
-//           campaigns: 84,
-//           emailsSent: 0,
-//           emailsRemaining: 845
-//         },
-//         campaignsPerMonth: [
-//           { month: 'January', count: 84 }
-//         ],
-//         campaignStats: [
-//           { name: 'test', date: '2026-01-07 to 2026-01-07', delivered: 0, opened: 0 },
-//           { name: 'test', date: '2026-01-07 to 2026-01-07', delivered: 0, opened: 0 },
-//           { name: 'dfgdf', date: '2026-01-08 to 2026-01-08', delivered: 3, opened: 0 },
-//           { name: 'sdfgsdf', date: '2026-01-08 to 2026-01-08', delivered: 3, opened: 0 },
-//           { name: 'xcxcxc', date: '2026-01-07 to 2026-01-08', delivered: 3, opened: 0 },
-//           { name: 'CHnaged', date: '2025-12-26 to 2025-12-27', delivered: 3, opened: 1 },
-//           { name: 'testting outlook', date: '2025-12-22 to 2025-12-23', delivered: 3, opened: 1 },
-//           { name: 'ssss', date: '2025-12-18 to 2025-12-19', delivered: 3, opened: 0 },
-//           { name: 'Test Fix', date: '2025-12-18 to 2025-12-19', delivered: 3, opened: 0 },
-//           { name: 'test outlook', date: '2025-12-18 to 2025-12-19', delivered: 3, opened: 0 },
-//           { name: 'Testing outlook', date: '2025-12-18 to 2025-12-19', delivered: 3, opened: 0 },
-//           { name: 'test', date: '2025-11-02 to 2025-11-02', delivered: 3, opened: 1 },
-//           { name: 'TESTING ALINGMENT', date: '2025-11-02 to 2025-11-02', delivered: 3, opened: 2 },
-//           { name: 'test', date: '2025-11-01 to 2025-11-01', delivered: 0, opened: 0 },
-//           { name: 'test', date: '2025-11-01 to 2025-11-01', delivered: 0, opened: 0 }
-//         ]
-//       });
-//     }, 500);
-//   });
-// };
-
-// export default function ClientDashboard() {
-//   const [data, setData] = useState<DashboardData | null>(null);
-//   const [loading, setLoading] = useState<boolean>(true);
-
-//   useEffect(() => {
-//     fetchDashboardData().then((result) => {
-//       setData(result);
-//       setLoading(false);
-//     });
-//   }, []);
-
-//   if (loading) {
-//     return (
-//       <div className="space-y-6">
-//         <div className="animate-pulse space-y-4">
-//           <div className="h-8 bg-muted rounded w-1/4"></div>
-//           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-//             {[1, 2, 3, 4].map((i) => (
-//               <div key={i} className="h-32 bg-muted rounded"></div>
-//             ))}
-//           </div>
-//         </div>
-//       </div>
-//     );
-//   }
-
-//   if (!data) return null;
-
-//   const { stats, campaignStats } = data;
-
-//   return (
-//     <div className="space-y-6">
-//       {/* Header */}
-//       <div className="flex items-center justify-between space-y-2">
-//         <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
-//         <div className="flex items-center space-x-2">
-//           <Button variant="outline" size="sm">
-//             <Download className="mr-2 h-4 w-4" />
-//             Download Reports
-//           </Button>
-//         </div>
-//       </div>
-
-//       {/* Stats Cards */}
-//       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-//         <Card>
-//           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-//             <CardTitle className="text-sm font-medium">Contacts</CardTitle>
-//             <Users className="h-4 w-4 text-muted-foreground" />
-//           </CardHeader>
-//           <CardContent>
-//             <div className="text-2xl font-bold">{stats.contacts}</div>
-//           </CardContent>
-//         </Card>
-
-//         <Card>
-//           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-//             <CardTitle className="text-sm font-medium">Campaigns</CardTitle>
-//             <TrendingUp className="h-4 w-4 text-muted-foreground" />
-//           </CardHeader>
-//           <CardContent>
-//             <div className="text-2xl font-bold">{stats.campaigns}</div>
-//           </CardContent>
-//         </Card>
-
-//         <Card>
-//           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-//             <CardTitle className="text-sm font-medium">Emails Send</CardTitle>
-//             <Mail className="h-4 w-4 text-muted-foreground" />
-//           </CardHeader>
-//           <CardContent>
-//             <div className="text-2xl font-bold">{stats.emailsSent}</div>
-//           </CardContent>
-//         </Card>
-
-//         <Card>
-//           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-//             <CardTitle className="text-sm font-medium">Emails Remaining</CardTitle>
-//             <Mail className="h-4 w-4 text-muted-foreground" />
-//           </CardHeader>
-//           <CardContent>
-//             <div className="text-2xl font-bold">{stats.emailsRemaining}</div>
-//           </CardContent>
-//         </Card>
-//       </div>
-
-//       {/* Charts and Table Section */}
-//       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-//         {/* Campaigns Chart */}
-//         <Card className="col-span-full lg:col-span-2">
-//           <CardHeader>
-//             <CardTitle>Campaigns Created per Month</CardTitle>
-//           </CardHeader>
-//           <CardContent className="flex items-center justify-center h-[300px]">
-//             <div className="relative">
-//               <svg width="200" height="200" viewBox="0 0 200 200">
-//                 <circle
-//                   cx="100"
-//                   cy="100"
-//                   r="90"
-//                   fill="#3B82F6"
-//                   stroke="none"
-//                 />
-//                 <text
-//                   x="100"
-//                   y="105"
-//                   textAnchor="middle"
-//                   fill="white"
-//                   fontSize="24"
-//                   fontWeight="bold"
-//                 >
-//                   100.0%
-//                 </text>
-//               </svg>
-//               <div className="flex items-center justify-center gap-2 mt-4">
-//                 <div className="w-3 h-3 rounded-full bg-blue-500"></div>
-//                 <span className="text-sm text-muted-foreground">January</span>
-//               </div>
-//             </div>
-//           </CardContent>
-//         </Card>
-
-//         {/* Campaign Statistics Table */}
-//         <Card className="col-span-full lg:col-span-5">
-//           <CardHeader>
-//             <div className="flex items-center justify-between">
-//               <CardTitle>Campaign statistics</CardTitle>
-//               <div className="flex gap-2">
-//                 <Button size="sm" className="bg-blue-500 hover:bg-blue-600">
-//                   ↓
-//                 </Button>
-//                 <Button size="sm" className="bg-purple-500 hover:bg-purple-600">
-//                   ⟲
-//                 </Button>
-//               </div>
-//             </div>
-//           </CardHeader>
-//           <CardContent>
-//             <div className="rounded-md border">
-//               <div className="overflow-x-auto">
-//                 <table className="w-full">
-//                   <thead>
-//                     <tr className="border-b bg-muted/50">
-//                       <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">
-//                         Campaign Name
-//                       </th>
-//                       <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">
-//                         Date
-//                       </th>
-//                       <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">
-//                         Delivered
-//                       </th>
-//                       <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">
-//                         Opened
-//                       </th>
-//                     </tr>
-//                   </thead>
-//                   <tbody>
-//                     {campaignStats.map((campaign, index) => (
-//                       <tr
-//                         key={index}
-//                         className="border-b transition-colors hover:bg-muted/50"
-//                       >
-//                         <td className="p-4 align-middle font-medium">
-//                           {campaign.name}
-//                         </td>
-//                         <td className="p-4 align-middle">
-//                           {campaign.date}
-//                         </td>
-//                         <td className="p-4 align-middle">
-//                           {campaign.delivered}
-//                         </td>
-//                         <td className="p-4 align-middle">
-//                           {campaign.opened}
-//                         </td>
-//                       </tr>
-//                     ))}
-//                   </tbody>
-//                 </table>
-//               </div>
-//             </div>
-//           </CardContent>
-//         </Card>
-//       </div>
-//     </div>
-//   );
-// }
