@@ -119,7 +119,8 @@ export interface CreateClientDTO {
     planId: string;
     adminEmail: string;
     adminPassword: string;
-    registrationEmail?: string; // Optional: defaults to adminEmail if not provided
+    mailgunDomain?: string; // Optional: Mailgun domain for sending emails
+    mailgunFromEmail?: string; // Optional: From email for campaigns (domain must match mailgunDomain)
     customFields?: CustomFieldDefinition[];
 }
 
