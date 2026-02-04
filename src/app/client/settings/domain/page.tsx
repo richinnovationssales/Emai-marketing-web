@@ -144,7 +144,7 @@ export default function DomainSettingsPage() {
         <div>
           <h3 className="text-lg font-medium">Domain Settings</h3>
           <p className="text-sm text-muted-foreground">
-            Configure your custom Mailgun domain for sending campaigns.
+            Configure your custom domain for sending campaigns.
           </p>
         </div>
         <Button variant="outline" size="sm" onClick={() => refetch()}>
@@ -191,7 +191,7 @@ export default function DomainSettingsPage() {
                 Custom Domain Configuration
               </CardTitle>
               <CardDescription>
-                Configure a custom Mailgun domain for sending emails
+                Configure a custom domain for sending emails
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -205,7 +205,7 @@ export default function DomainSettingsPage() {
                     name="mailgunDomain"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Mailgun Domain</FormLabel>
+                        <FormLabel> Domain</FormLabel>
                         <FormControl>
                           <Input placeholder="mail.yourdomain.com" {...field} />
                         </FormControl>

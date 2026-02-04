@@ -95,4 +95,4 @@ export const mailgunDomainMatchRefinement = (data: {
 };
 
 export const MAILGUN_DOMAIN_MATCH_MESSAGE =
-  "From email domain must match the Mailgun domain (e.g., if domain is mail.example.com, use user@mail.example.com)";
+  "From email domain must match the domain (e.g., if domain is mail.example.com, use user@mail.example.com)";

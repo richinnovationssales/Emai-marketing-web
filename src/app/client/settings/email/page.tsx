@@ -189,7 +189,7 @@ export default function EmailSettingsPage() {
             <CardHeader>
               <CardTitle>Custom Domain Configuration</CardTitle>
               <CardDescription>
-                Configure a custom Mailgun domain for sending emails
+                Configure a custom domain for sending emails
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -203,7 +203,7 @@ export default function EmailSettingsPage() {
                     name="mailgunDomain"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Mailgun Domain</FormLabel>
+                        <FormLabel> Domain</FormLabel>
                         <FormControl>
                           <Input placeholder="mail.yourdomain.com" {...field} />
                         </FormControl>

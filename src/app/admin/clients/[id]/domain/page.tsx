@@ -263,7 +263,7 @@ export default function AdminClientDomainPage() {
                                 Domain Settings
                             </h1>
                             <p className="text-muted-foreground">
-                                Manage Mailgun domain configuration for{' '}
+                                Manage domain configuration for{' '}
                                 <span className="font-medium text-foreground">
                                     {domainConfig?.clientName}
                                 </span>
@@ -385,7 +385,7 @@ export default function AdminClientDomainPage() {
                                         Custom Domain Configuration
                                     </CardTitle>
                                     <CardDescription>
-                                        Configure a custom Mailgun domain for this client
+                                        Configure a custom domain for this client
                                     </CardDescription>
                                 </CardHeader>
                                 <CardContent>
@@ -399,7 +399,7 @@ export default function AdminClientDomainPage() {
                                                 name="mailgunDomain"
                                                 render={({ field }) => (
                                                     <FormItem>
-                                                        <FormLabel>Mailgun Domain</FormLabel>
+                                                        <FormLabel> Domain</FormLabel>
                                                         <FormControl>
                                                             <Input
                                                                 placeholder="mail.clientdomain.com"
