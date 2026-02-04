@@ -34,8 +34,9 @@ export function GroupCard({ group, onEdit, onDelete, showActions = true, classNa
     onDelete?.(group);
   };
 
-  const contactCount = group._count?.contacts ?? 0;
   const createdDate = new Date(group.createdAt).toLocaleDateString();
+  const contactCount = group.createdBy?.contacts?.length;
+
 
   return (
     <Card
@@ -49,12 +50,12 @@ export function GroupCard({ group, onEdit, onDelete, showActions = true, classNa
         <div className="flex items-start justify-between">
           <div className="flex-1 min-w-0">
             <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 truncate mb-2">
-              {group.name}
+              {group?.name}
             </h3>
             
             {group.description && (
               <p className="text-sm text-slate-600 dark:text-slate-400 line-clamp-2 mb-3">
-                {group.description}
+                {group?.description}
               </p>
             )}
 
@@ -62,7 +63,7 @@ export function GroupCard({ group, onEdit, onDelete, showActions = true, classNa
               <div className="flex items-center gap-1.5">
                 <Users className="h-4 w-4" />
                 <span>
-                  {contactCount} {contactCount === 1 ? 'contact' : 'contacts'}
+                  {contactCount} 
                 </span>
               </div>
               

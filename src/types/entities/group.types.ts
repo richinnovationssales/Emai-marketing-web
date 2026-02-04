@@ -1,17 +1,33 @@
 import { CustomFieldType } from '../enums/custom-field-type.enum';
 
 export interface Group {
+  id: string;
+  name: string;
+  description?: string | null;
+  clientId: string;
+  createdAt: string;
+  updatedAt: string;
+
+  createdBy?: {
     id: string;
-    name: string;
-    description?: string | null;
-    clientId: string;
-    createdAt: string;
-    updatedAt: string;
-    _count?: {
-        contacts: number;
-        campaigns: number;
-    };
+    email: string;
+    role: string;
+    contacts?: Contact[];
+  };
 }
+
+
+
+export interface Contact {
+  id: string;
+  email: string;
+  firstName?: string | null;
+  lastName?: string | null;
+  clientId: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 
 export interface CreateGroupDTO {
     name: string;

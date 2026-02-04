@@ -63,7 +63,13 @@ export default function GroupsPage() {
     if (fetchedRef.current) return;
     fetchedRef.current = true;
     dispatch(fetchGroups());
+
+    
   }, [dispatch]);
+
+  useEffect(() => {
+  console.log('Groups from store:', groups);
+}, [groups]);
 
   const handleCreateGroup = async (data: CreateGroupData) => {
     try {
