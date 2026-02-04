@@ -82,7 +82,7 @@ export function GroupTable({ groups, onEdit, onDelete, showActions = true }: Gro
                   <TableCell className="text-center" onClick={() => handleView(group.id)}>
                     <Badge variant="secondary" className="gap-1">
                       <Users className="h-3 w-3" />
-                      {group._count?.contacts ?? 0}
+                      {/* {group._count?.contacts ?? 0} */}
                     </Badge>
                   </TableCell>
                   <TableCell onClick={() => handleView(group.id)}>
