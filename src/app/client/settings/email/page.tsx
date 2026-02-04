@@ -52,16 +52,23 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { useEffect } from "react";
+import {
+  mailgunDomainField,
+  mailgunFromEmailField,
+  mailgunDomainMatchRefinement,
+  MAILGUN_DOMAIN_MATCH_MESSAGE,
+} from "@/lib/validations/domain.schemas";
 
-const domainFormSchema = z.object({
-  mailgunDomain: z.string().optional(),
-  mailgunFromEmail: z
-    .string()
-    .email("Invalid email address")
-    .optional()
-    .or(z.literal("")),
-  mailgunFromName: z.string().optional(),
-});
+const domainFormSchema = z
+  .object({
+    mailgunDomain: mailgunDomainField,
+    mailgunFromEmail: mailgunFromEmailField,
+    mailgunFromName: z.string().optional(),
+  })
+  .refine(mailgunDomainMatchRefinement, {
+    message: MAILGUN_DOMAIN_MATCH_MESSAGE,
+    path: ["mailgunFromEmail"],
+  });
 
 type DomainFormValues = z.infer<typeof domainFormSchema>;
 
@@ -201,7 +208,8 @@ export default function EmailSettingsPage() {
                           <Input placeholder="mail.yourdomain.com" {...field} />
                         </FormControl>
                         <FormDescription>
-                          Your verified Mailgun sending domain
+                          Your verified Mailgun sending domain. Public email
+                          providers are not allowed.
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
@@ -222,7 +230,8 @@ export default function EmailSettingsPage() {
                           />
                         </FormControl>
                         <FormDescription>
-                          The email address that will appear in the "From" field
+                          The email address that will appear in the "From"
+                          field. The domain must match the domain above.
                         </FormDescription>
                         <FormMessage />
                       </FormItem>

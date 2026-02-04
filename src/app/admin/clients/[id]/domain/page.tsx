@@ -78,12 +78,42 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 import Link from 'next/link';
+import {
+    isValidDomain,
+    isPublicEmailProvider,
+    mailgunDomainMatchRefinement,
+    MAILGUN_DOMAIN_MATCH_MESSAGE,
+} from '@/lib/validations/domain.schemas';
 
-const domainFormSchema = z.object({
-    mailgunDomain: z.string().min(1, 'Domain is required'),
-    mailgunFromEmail: z.string().email('Invalid email address'),
-    mailgunFromName: z.string().min(1, 'From name is required'),
-});
+const domainFormSchema = z
+    .object({
+        mailgunDomain: z
+            .string()
+            .min(1, 'Domain is required')
+            .refine(
+                (val) => isValidDomain(val),
+                'Please enter a valid domain (e.g., mail.yourdomain.com)',
+            )
+            .refine(
+                (val) => !isPublicEmailProvider(val),
+                'Public email providers (Gmail, Yahoo, Outlook, etc.) are not allowed',
+            ),
+        mailgunFromEmail: z
+            .string()
+            .email('Invalid email address')
+            .refine(
+                (val) => {
+                    const domain = val.split('@')[1];
+                    return domain ? !isPublicEmailProvider(domain) : true;
+                },
+                'Public email providers (Gmail, Yahoo, Outlook, etc.) are not allowed',
+            ),
+        mailgunFromName: z.string().min(1, 'From name is required'),
+    })
+    .refine(mailgunDomainMatchRefinement, {
+        message: MAILGUN_DOMAIN_MATCH_MESSAGE,
+        path: ['mailgunFromEmail'],
+    });
 
 type DomainFormValues = z.infer<typeof domainFormSchema>;
 
