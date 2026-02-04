@@ -133,11 +133,11 @@ export function GroupSelector({
                   className="flex-1 cursor-pointer flex items-center justify-between"
                 >
                   <span className="font-medium">{group.name}</span>
-                  {group._count?.contacts !== undefined && (
+                  {/* {group?.id !== undefined && (
                     <span className="text-xs text-muted-foreground">
-                      {group._count.contacts} contacts
+                      {group.name} contacts
                     </span>
-                  )}
+                  )} */}
                 </Label>
               </div>
             ))}
