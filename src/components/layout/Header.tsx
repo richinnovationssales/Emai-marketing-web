@@ -35,7 +35,7 @@ export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
         
         <div className="flex items-center gap-2 font-semibold text-lg md:text-xl">
           <Link href="/" className="flex items-center gap-2">
-            <span className="text-primary">Email</span>CRM
+            <span className="text-primary">BEE Smart Campaigns</span>
           </Link>
         </div>
 

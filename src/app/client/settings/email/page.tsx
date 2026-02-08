@@ -129,8 +129,6 @@ export default function EmailSettingsPage() {
 
   const handleSubmit = (values: DomainFormValues) => {
     updateDomain.mutate({
-      mailgunDomain: values.mailgunDomain || undefined,
-      mailgunFromEmail: values.mailgunFromEmail || undefined,
       mailgunFromName: values.mailgunFromName || undefined,
     });
   };
@@ -205,11 +203,10 @@ export default function EmailSettingsPage() {
                       <FormItem>
                         <FormLabel> Domain</FormLabel>
                         <FormControl>
-                          <Input placeholder="mail.yourdomain.com" {...field} />
+                          <Input placeholder="mail.yourdomain.com" {...field} readOnly disabled className="bg-muted" />
                         </FormControl>
                         <FormDescription>
-                          Your verified Mailgun sending domain. Public email
-                          providers are not allowed.
+                          Your sending domain. This field cannot be changed.
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
@@ -227,11 +224,14 @@ export default function EmailSettingsPage() {
                             type="email"
                             placeholder="noreply@yourdomain.com"
                             {...field}
+                            readOnly
+                            disabled
+                            className="bg-muted"
                           />
                         </FormControl>
                         <FormDescription>
-                          The email address that will appear in the "From"
-                          field. The domain must match the domain above.
+                          The email address that will appear in the
+                          &quot;From&quot; field. This field cannot be changed.
                         </FormDescription>
                         <FormMessage />
                       </FormItem>

@@ -3,7 +3,7 @@ export default function Home() {
     <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
       <div className="max-w-4xl px-6 text-center">
         <h1 className="text-5xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-6xl">
-          Email Marketing CRM
+          BEE Smart Campaigns
         </h1>
         <p className="mt-6 text-lg leading-8 text-gray-600 dark:text-gray-300">
           Professional email marketing and CRM platform for managing contacts, campaigns,

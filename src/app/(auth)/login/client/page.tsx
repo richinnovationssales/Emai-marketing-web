@@ -176,7 +176,7 @@ export default function ClientLoginPage() {
 
       {/* Register Link */}
       <div className="mt-8 text-center">
-        <p className="text-sm text-gray-600 dark:text-gray-400">
+        {/* <p className="text-sm text-gray-600 dark:text-gray-400">
           Don&apos;t have an account?{' '}
           <Link
             href="/register"
@@ -184,7 +184,7 @@ export default function ClientLoginPage() {
           >
             Register your company
           </Link>
-        </p>
+        </p> */}
       </div>
     </AuthCard>
   );

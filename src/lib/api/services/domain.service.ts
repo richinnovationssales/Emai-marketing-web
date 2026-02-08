@@ -22,6 +22,7 @@ export const domainService = {
    * Requires CLIENT_SUPER_ADMIN role
    */
   update: async (domainData: UpdateDomainRequest): Promise<UpdateDomainResponse> => {
+    console.log("Updating domain with data:", domainData);
     const { data } = await apiClient.put<UpdateDomainResponse>(
       API_ENDPOINTS.DOMAIN.BASE,
       domainData

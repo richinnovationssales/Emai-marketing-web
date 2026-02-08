@@ -81,7 +81,7 @@ export function ClientSidebar({
           </div>
           {!isCollapsed && (
             <div className="flex flex-col">
-              <span className="text-white font-semibold text-sm">Email CRM</span>
+              <span className="text-white font-semibold text-sm">BEE Smart Campaigns</span>
               <span className="text-slate-400 text-xs">Client Portal</span>
             </div>
           )}

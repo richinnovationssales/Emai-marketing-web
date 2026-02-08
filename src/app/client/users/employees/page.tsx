@@ -79,7 +79,7 @@ export default function EmployeesPage() {
             Employees
           </h1>
           <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-            Manage CLIENT_USER employees in your organization
+            Manage client user employees in your organization
           </p>
         </div>
         <Button onClick={() => setCreateDialogOpen(true)}>
@@ -123,7 +123,7 @@ export default function EmployeesPage() {
                   </TableCell>
                   <TableCell>
                     <span className="inline-flex items-center rounded-full bg-blue-100 dark:bg-blue-900/30 px-2.5 py-0.5 text-xs font-medium text-blue-800 dark:text-blue-400">
-                      CLIENT_USER
+                      Client User
                     </span>
                   </TableCell>
                   <TableCell className="text-gray-500">

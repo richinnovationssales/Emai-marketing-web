@@ -1,5 +1,5 @@
 export const APP_CONFIG = {
-    name: process.env.NEXT_PUBLIC_APP_NAME || 'Email Marketing CRM',
+    name: process.env.NEXT_PUBLIC_APP_NAME || 'BEE Smart Campaigns',
     url: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3001',
     apiBaseUrl: process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000/api',
 

@@ -4,7 +4,7 @@ export default function LoginPage() {
     <div className="rounded-lg bg-white dark:bg-gray-800 p-8 shadow-lg">
       <div className="mb-6 text-center">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-          Sign In to Email Marketing CRM
+          Sign In to BEE Smart Campaigns
         </h1>
         <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
           Choose your login type
@@ -28,12 +28,12 @@ export default function LoginPage() {
       </div>
       
       <div className="mt-6 text-center">
-        <p className="text-sm text-gray-600 dark:text-gray-400">
+        {/* <p className="text-sm text-gray-600 dark:text-gray-400">
           Don't have an account?{' '}
           <a href="/register" className="font-semibold text-indigo-600 hover:text-indigo-500">
             Register your company
           </a>
-        </p>
+        </p> */}
       </div>
     </div>
   );

@@ -9,7 +9,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Email Marketing CRM",
+  title: "BEE Smart Campaigns",
   description: "Professional email marketing and CRM platform for managing contacts, campaigns, and analytics",
 };
 
