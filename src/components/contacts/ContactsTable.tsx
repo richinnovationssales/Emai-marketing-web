@@ -261,7 +261,7 @@ export function ContactsTable({ data, onDelete, groupId }: ContactsTableProps) {
                                     </TableCell>
                                     <TableCell>{email}</TableCell>
                                     <TableCell>{phone || '-'}</TableCell>
-                                    <TableCell>{contact?.groupId || '-'}</TableCell>
+                                        <TableCell>{contact?.groupName || '-'}</TableCell>
                                     <TableCell className="text-right space-x-2">
                                         <Link href={`/client/contacts/${contact?.id}/edit`} >
                                             <Button variant="ghost" size="icon" className="h-8 w-8">

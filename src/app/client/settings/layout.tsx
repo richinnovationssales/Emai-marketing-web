@@ -22,11 +22,11 @@ interface NavItem {
 }
 
 const sidebarNavItems: NavItem[] = [
-  {
-    title: "Profile",
-    href: "/client/settings/profile",
-    icon: User,
-  },
+  // {
+  //   title: "Profile",
+  //   href: "/client/settings/profile",
+  //   icon: User,
+  // },
   {
     title: "Email Configuration",
     href: "/client/settings/email",
@@ -44,16 +44,16 @@ const sidebarNavItems: NavItem[] = [
     icon: ScrollText,
     roles: [UserRole.CLIENT_SUPER_ADMIN],
   },
-  {
-    title: "Plan & Billing",
-    href: "/client/settings/plan",
-    icon: CreditCard,
-  },
-  {
-    title: "Team Members",
-    href: "/client/settings/users",
-    icon: Users,
-  },
+  // {
+  //   title: "Plan & Billing",
+  //   href: "/client/settings/plan",
+  //   icon: CreditCard,
+  // },
+  // {
+  //   title: "Team Members",
+  //   href: "/client/settings/users",
+  //   icon: Users,
+  // },
 ];
 
 export default function SettingsLayout({ children }: SettingsLayoutProps) {

@@ -13,8 +13,8 @@ export const contactService = {
 
     // Get contact by ID
     getById: async (id: string): Promise<Contact> => {
-        const { data } = await apiClient.get<ApiResponse<Contact>>(`/contacts/${id}`);
-        return data.data;
+        const { data } = await apiClient.get<Contact>(`/contacts/${id}`);
+        return data;
     },
 
     // Create contact

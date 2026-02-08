@@ -59,6 +59,7 @@ export interface BaseContact {
   lastName?: string | null;
   createdAt?: string;
   groupId?: string | null;
+  groupName?: string | null;
 
   // Dynamic fields support
   customFields?: Record<string, any>;

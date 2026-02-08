@@ -310,7 +310,7 @@ export default function EmailSettingsPage() {
         {/* Right Sidebar */}
         <div className="space-y-6">
           {/* Verification Status */}
-          <Card>
+          {/* <Card>
             <CardHeader>
               <CardTitle className="text-lg">Verification Status</CardTitle>
             </CardHeader>
@@ -345,7 +345,7 @@ export default function EmailSettingsPage() {
                   </p>
                 )}
             </CardContent>
-          </Card>
+          </Card> */}
 
         </div>
       </div>

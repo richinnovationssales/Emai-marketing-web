@@ -312,7 +312,7 @@ export default function DomainSettingsPage() {
 
         {/* Right Sidebar - Verification Status */}
         <div className="space-y-6">
-          <Card>
+          {/* <Card>
             <CardHeader>
               <CardTitle className="text-lg">Verification Status</CardTitle>
             </CardHeader>
@@ -347,7 +347,7 @@ export default function DomainSettingsPage() {
                   </p>
                 )}
             </CardContent>
-          </Card>
+          </Card> */}
 
           {/* Current Config Summary */}
           <Card>

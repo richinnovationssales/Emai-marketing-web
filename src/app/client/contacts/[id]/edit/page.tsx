@@ -3,10 +3,7 @@
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch } from '@/store';
-import { fetchContactById, setSelectedContact, selectContactError } from '@/store/slices/contact.slice';
-// We need a selector for selectedContact. I created setSelectedContact and slice has selectedContact.
-// Selector: selectContacts... wait, did I export selectSelectedContact?
-// Let me check contact.slice.ts
+import { fetchContactById, selectSelectedContact, selectContactError, selectContactLoading } from '@/store/slices/contact.slice';
 import { ContactForm } from '@/components/contacts/ContactForm';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Loader2 } from 'lucide-react';
@@ -18,17 +15,13 @@ export default function EditContactPage() {
     const params = useParams();
     const id = params?.id as string;
     
-    // I need to define/export this selector if I haven't.
-    // selectSelectedContact
-    const selectedContact = useSelector((state: any) => state.contacts.selectedContact); 
-    const isLoading = useSelector((state: any) => state.contacts.isLoading);
-    const error = useSelector((state: any) => state.contacts.error) || useSelector(selectContactError);
-
-    console.log("selectedContactselectedContact",{selectedContact})
+    const selectedContact = useSelector(selectSelectedContact);
+    const isLoading = useSelector(selectContactLoading);
+    const error = useSelector(selectContactError);
 
     useEffect(() => {
-        if (id && !selectedContact) {
-             dispatch(fetchContactById(id));
+        if (id) {
+            dispatch(fetchContactById(id));
         }
     }, [dispatch, id]);
 
@@ -45,8 +38,8 @@ export default function EditContactPage() {
         );
     }
 
-    // Show loader if loading OR if we don't have the contact yet (initial fetch)
-    if (isLoading || (id && !selectedContact)) {
+    // Show loader if loading OR if the loaded contact doesn't match the current route
+    if (isLoading || !selectedContact || selectedContact.id !== id) {
         return (
              <div className="flex justify-center py-20">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
