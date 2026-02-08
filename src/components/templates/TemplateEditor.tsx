@@ -19,6 +19,7 @@ import {
   Palette,
   Settings,
   LayoutGrid,
+  Trash2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -195,6 +196,17 @@ export default function TemplateEditor({
           toast.error("Failed to export HTML");
         }
         break;
+      case "clear":
+        editorRef.current.DomComponents.clear();
+        editorRef.current.setComponents(`
+          <mjml>
+            <mj-body background-color="#f0f2f5">
+            </mj-body>
+          </mjml>
+        `);
+        editorRef.current.UndoManager.clear();
+        toast.success("Editor cleared");
+        break;
       case "save":
         if (onSave && editorRef.current) {
           const content = editorRef.current.getHtml();
@@ -361,6 +373,15 @@ export default function TemplateEditor({
               onClick={() => executeCommand("redo")}
             >
               <Redo className="w-4 h-4" />
+            </Button>
+            <div className="w-px h-6 bg-border mx-2" />
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => executeCommand("clear")}
+              title="Clear all content"
+            >
+              <Trash2 className="w-4 h-4 mr-2" /> Clear
             </Button>
             <div className="w-px h-6 bg-border mx-2" />
             <Button
