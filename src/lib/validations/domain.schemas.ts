@@ -55,6 +55,7 @@ export const isPublicEmailProvider = (domain: string): boolean => {
 // Reusable mailgunDomain zod field (optional, with validation)
 export const mailgunDomainField = z
   .string()
+  .min(1, "Domain is required")
   .transform((val) => val.trim() || undefined)
   .refine(
     (val) => !val || isValidDomain(val),
@@ -63,12 +64,12 @@ export const mailgunDomainField = z
   .refine(
     (val) => !val || !isPublicEmailProvider(val),
     "Public email providers (Gmail, Yahoo, Outlook, etc.) are not allowed",
-  )
-  .optional();
+  );
 
 // Reusable mailgunFromEmail zod field (optional, with validation)
 export const mailgunFromEmailField = z
   .string()
+  .min(1, "From email is required")
   .transform((val) => val.trim() || undefined)
   .refine(
     (val) => !val || z.string().email().safeParse(val).success,
@@ -81,8 +82,7 @@ export const mailgunFromEmailField = z
       return domain ? !isPublicEmailProvider(domain) : true;
     },
     "Public email providers (Gmail, Yahoo, Outlook, etc.) are not allowed",
-  )
-  .optional();
+  );
 
 // Cross-field refinement: mailgunFromEmail domain must match mailgunDomain
 export const mailgunDomainMatchRefinement = (data: {

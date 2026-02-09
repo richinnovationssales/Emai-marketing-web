@@ -39,6 +39,7 @@ import {
 const clientFormSchema = z
   .object({
     mailgunDomain: mailgunDomainField,
+    // mailgunDomain: mailgunDomainField.z.string().min(1, "Domain is required"),
     name: z.string().min(1, "Client name is required").max(255, "Name too long"),
     planId: z.string().min(1, "Plan is required"),
     adminEmail: z.string().email("Invalid email address"),
@@ -48,6 +49,7 @@ const clientFormSchema = z
       .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
       .regex(/[a-z]/, "Password must contain at least one lowercase letter")
       .regex(/[0-9]/, "Password must contain at least one number"),
+    // mailgunFromEmail: mailgunFromEmailField,
     mailgunFromEmail: mailgunFromEmailField,
   })
   .refine(mailgunDomainMatchRefinement, {
