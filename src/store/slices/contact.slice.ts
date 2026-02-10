@@ -197,6 +197,7 @@ const contactSlice = createSlice({
 
         // Update Contact
         builder.addCase(updateContact.fulfilled, (state, action) => {
+            if (!action.payload) return;
             const index = state.items.findIndex((c) => c.id === action.payload.id);
             if (index !== -1) {
                 state.items[index] = action.payload;

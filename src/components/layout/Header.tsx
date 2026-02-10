@@ -57,7 +57,7 @@ export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>
                 <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium leading-none">{displayName}</p>
+                  <p className="text-sm font-medium leading-none first-letter:uppercase">{displayName}</p>
                   <p className="text-xs leading-none text-muted-foreground">{user?.email}</p>
                 </div>
               </DropdownMenuLabel>
