@@ -29,7 +29,7 @@ import {
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { dashboardService } from "@/lib/api/services/dashboard.service";
-import { exportDashboardToExcel } from "@/lib/utils/export-utils";
+import { exportDashboardToExcel, type RawCampaign } from "@/lib/utils/export-utils";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 
@@ -53,6 +53,7 @@ interface DashboardData {
   stats: DashboardStats;
   campaignsPerMonth: { month: string; count: number }[];
   campaignStats: CampaignStat[];
+  rawCampaigns: RawCampaign[];
 }
 
 /* ===================== API ===================== */
@@ -110,10 +111,27 @@ const fetchDashboardData = async (): Promise<DashboardData> => {
       return acc;
     }, [] as { month: string; count: number }[]);
 
+    const rawCampaigns: RawCampaign[] = response.campaigns
+      .filter((c) => c.sentAt)
+      .map((c) => ({
+        id: c.id,
+        name: c.name,
+        subject: c.subject,
+        sentAt: c.sentAt,
+        emailEvents: (c.emailEvents || []).map((e) => ({
+          id: e.id,
+          contactEmail: e.contactEmail,
+          eventType: e.eventType,
+          timestamp: e.timestamp,
+          errorMessage: e.errorMessage,
+        })),
+      }));
+
     return {
       stats,
       campaignsPerMonth,
       campaignStats,
+      rawCampaigns,
     };
   } catch (error) {
     console.error("Failed to fetch dashboard data:", error);
@@ -126,6 +144,7 @@ const fetchDashboardData = async (): Promise<DashboardData> => {
       },
       campaignsPerMonth: [],
       campaignStats: [],
+      rawCampaigns: [],
     };
   }
 };
@@ -216,10 +235,25 @@ export default function ClientDashboard() {
             }
           : undefined;
 
+      // Filter raw campaigns by the same date range as campaignStats
+      const filteredRawCampaigns = data.rawCampaigns.filter((c) => {
+        if (!startDate && !endDate) return true;
+        if (!c.sentAt) return false;
+        const d = new Date(c.sentAt);
+        if (startDate && d < startDate) return false;
+        if (endDate) {
+          const endOfDay = new Date(endDate);
+          endOfDay.setHours(23, 59, 59, 999);
+          if (d > endOfDay) return false;
+        }
+        return true;
+      });
+
       exportDashboardToExcel({
         stats: data.stats,
         campaignStats: filteredCampaignStats,
         dailyPerformance: areaChartData,
+        rawCampaigns: filteredRawCampaigns,
         dateRange,
       });
     } finally {
