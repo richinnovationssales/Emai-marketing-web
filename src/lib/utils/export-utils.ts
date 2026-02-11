@@ -1,4 +1,5 @@
 import * as XLSX from 'xlsx';
+import { format } from 'date-fns';
 
 interface DashboardStats {
   contacts: number;
@@ -20,12 +21,37 @@ interface DailyPerformance {
   opened: number;
 }
 
+export interface RawEmailEvent {
+  id: string;
+  contactEmail: string;
+  eventType: string;
+  timestamp: string;
+  errorMessage: string | null;
+}
+
+export interface RawCampaign {
+  id: string;
+  name: string;
+  subject: string;
+  sentAt: string | null;
+  emailEvents: RawEmailEvent[];
+}
+
 interface ExportDashboardParams {
   stats: DashboardStats;
   campaignStats: CampaignStat[];
   dailyPerformance: DailyPerformance[];
+  rawCampaigns?: RawCampaign[];
   dateRange?: { start: string; end: string };
 }
+
+// Higher number = more advanced status
+const EVENT_PRIORITY: Record<string, number> = {
+  SENT: 1,
+  DELIVERED: 2,
+  OPENED: 3,
+  CLICKED: 4,
+};
 
 /**
  * Export dashboard data to a clean Excel file with multiple sheets
@@ -34,6 +60,7 @@ export function exportDashboardToExcel({
   stats,
   campaignStats,
   dailyPerformance,
+  rawCampaigns,
   dateRange,
 }: ExportDashboardParams) {
   const wb = XLSX.utils.book_new();
@@ -122,6 +149,67 @@ export function exportDashboardToExcel({
   ];
 
   XLSX.utils.book_append_sheet(wb, wsPerformance, 'Daily Performance');
+
+  // --- Sheet 4: Campaign Contact Details ---
+  if (rawCampaigns && rawCampaigns.length > 0) {
+    const detailHeaders = ['Campaign', 'Subject', 'Sent At', 'Contact Email', 'Latest Status', 'Status Time'];
+    const detailRows: (string | number)[][] = [];
+
+    for (const campaign of rawCampaigns) {
+      if (!campaign.emailEvents || campaign.emailEvents.length === 0) continue;
+
+      // Group events by contact email, keep only the highest-priority event
+      const contactMap = new Map<string, RawEmailEvent>();
+
+      for (const event of campaign.emailEvents) {
+        const existing = contactMap.get(event.contactEmail);
+        const eventPriority = EVENT_PRIORITY[event.eventType] ?? 0;
+        const existingPriority = existing ? (EVENT_PRIORITY[existing.eventType] ?? 0) : -1;
+
+        if (eventPriority > existingPriority) {
+          contactMap.set(event.contactEmail, event);
+        } else if (eventPriority === existingPriority) {
+          // Same status — keep the latest timestamp
+          if (new Date(event.timestamp) > new Date(existing!.timestamp)) {
+            contactMap.set(event.contactEmail, event);
+          }
+        }
+      }
+
+      const campaignSentAt = campaign.sentAt
+        ? format(new Date(campaign.sentAt), 'yyyy-MM-dd HH:mm')
+        : 'Not sent';
+
+      let isFirstRow = true;
+      for (const [email, event] of contactMap) {
+        detailRows.push([
+          isFirstRow ? campaign.name : '',
+          isFirstRow ? campaign.subject : '',
+          isFirstRow ? campaignSentAt : '',
+          email,
+          event.eventType,
+          format(new Date(event.timestamp), 'yyyy-MM-dd HH:mm:ss'),
+        ]);
+        isFirstRow = false;
+      }
+    }
+
+    if (detailRows.length > 0) {
+      const detailData = [detailHeaders, ...detailRows];
+      const wsDetails = XLSX.utils.aoa_to_sheet(detailData);
+
+      wsDetails['!cols'] = [
+        { wch: 25 },  // Campaign
+        { wch: 30 },  // Subject
+        { wch: 18 },  // Sent At
+        { wch: 30 },  // Contact Email
+        { wch: 14 },  // Latest Status
+        { wch: 20 },  // Status Time
+      ];
+
+      XLSX.utils.book_append_sheet(wb, wsDetails, 'Contact Details');
+    }
+  }
 
   // Generate filename
   const dateStr = new Date().toISOString().split('T')[0];
