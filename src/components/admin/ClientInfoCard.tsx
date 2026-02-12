@@ -55,8 +55,12 @@ export function ClientInfoCard({ client, plans }: ClientInfoCardProps) {
         
         if (formData.name !== client.name) updateData.name = formData.name;
         if (formData.planId !== client.planId) updateData.planId = formData.planId;
-        if (formData.planStartDate !== client.planStartDate) updateData.planStartDate = formData.planStartDate;
-        if (formData.planRenewalDate !== client.planRenewalDate) updateData.planRenewalDate = formData.planRenewalDate;
+        if (formData.planStartDate !== client.planStartDate) {
+            updateData.planStartDate = formData.planStartDate ? new Date(formData.planStartDate).toISOString() : '';
+        }
+        if (formData.planRenewalDate !== client.planRenewalDate) {
+            updateData.planRenewalDate = formData.planRenewalDate ? new Date(formData.planRenewalDate).toISOString() : '';
+        }
         if (formData.remainingMessages !== client.remainingMessages) updateData.remainingMessages = formData.remainingMessages;
 
         if (Object.keys(updateData).length > 0) {
