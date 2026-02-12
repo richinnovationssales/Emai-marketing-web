@@ -127,8 +127,8 @@ export interface CreateClientDTO {
 export interface UpdateClientDTO {
     name?: string;
     planId?: string;
-    planStartDate?: string;
-    planRenewalDate?: string;
+    planStartDate?: string | null;
+    planRenewalDate?: string | null;
     remainingMessages?: number;
     isApproved?: boolean;
     isActive?: boolean;
