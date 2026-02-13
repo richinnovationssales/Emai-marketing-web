@@ -57,6 +57,17 @@ export function ClientInfoCard({ client, plans }: ClientInfoCardProps) {
     setIsEditing(false);
   };
 
+  // Inside ClientInfoCard component
+React.useEffect(() => {
+  setFormData({
+    name: client.name,
+    planId: client.planId,
+    planStartDate: client.planStartDate,
+    planRenewalDate: client.planRenewalDate,
+    remainingMessages: client.remainingMessages || 0,
+  });
+}, [client]); // Triggers when Redux updates the 'client' prop
+
   const handleSave = async () => {
     const updateData: UpdateClientDTO = {};
 
@@ -79,11 +90,30 @@ export function ClientInfoCard({ client, plans }: ClientInfoCardProps) {
       return;
     }
     try {
-      await dispatch(
-        updateClient({ id: client.id, data: updateData }),
-      ).unwrap();
+      // await dispatch(
+      //   updateClient({ id: client.id, data: updateData }),
+      // ).unwrap();
+      const result = await dispatch(updateClient({ id: client.id, data: updateData })).unwrap();
+// console.log("Check this object:", result);
 
       toast.success("Client updated successfully");
+    // console.log("result ", result);
+
+    if (result) {
+      toast.success("Client updated successfully");
+      
+      // Safety check: only update if result exists
+      setFormData({
+        name: result.name || client.name,
+        planId: result.planId || client.planId,
+        planStartDate: result.planStartDate || client.planStartDate,
+        planRenewalDate: result.planRenewalDate || client.planRenewalDate,
+        // remainingMessages: result.remainingMessages ?? client.remainingMessages,
+      });
+
+    }
+
+    
 
       setIsEditing(false);
     } catch (error: any) {
@@ -97,13 +127,6 @@ export function ClientInfoCard({ client, plans }: ClientInfoCardProps) {
       toast.error(message);
     }
 
-    // if (Object.keys(updateData).length > 0) {
-    //   await dispatch(
-    //     updateClient({ id: client.id, data: updateData }),
-    //   ).unwrap();
-    //   toast.success("Client updated successfully");
-    // }
-    // setIsEditing(false);
   };
 
   const formatDate = (dateString: string | null) => {

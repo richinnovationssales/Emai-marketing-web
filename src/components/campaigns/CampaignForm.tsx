@@ -32,7 +32,7 @@ import { GroupSelector } from "./GroupSelector";
 import { TemplateSelector } from "./TemplateSelector";
 import { RecurringScheduleForm } from "./RecurringScheduleForm";
 import { CampaignPreview } from "./CampaignPreview";
-import { RichTextEditor } from "./RichTextEditor"; // Import the new editor
+import { RichTextEditor } from "./RichTextEditor";
 
 import {
   useCreateCampaign,
@@ -72,6 +72,39 @@ interface CampaignFormProps {
   campaignId?: string;
 }
 
+/**
+ * Merges the user-written rich text body with a selected HTML template.
+ *
+ * Strategy (in priority order):
+ *  1. If the template contains a `{{content}}` placeholder → inject body there.
+ *  2. If the template contains a `<body>` tag → prepend body as the first child of <body>.
+ *  3. Fallback → prepend body wrapped in a <div> directly above the raw template HTML.
+ *
+ * This ensures the body is ALWAYS included regardless of template structure.
+ */
+function mergeBodyWithTemplate(body: string, templateHtml: string): string {
+  if (!body) return templateHtml;
+  if (!templateHtml) return body;
+
+  const wrappedBody = `<div class="campaign-body-content" style="margin-bottom:16px;">${body}</div>`;
+
+  // 1. Explicit placeholder
+  if (templateHtml.includes("{{content}}")) {
+    return templateHtml.replace("{{content}}", wrappedBody);
+  }
+
+  // 2. Has a <body> tag — insert as first child
+  if (/<body[\s>]/i.test(templateHtml)) {
+    return templateHtml.replace(
+      /(<body[^>]*>)/i,
+      `$1\n${wrappedBody}\n`
+    );
+  }
+
+  // 3. Bare HTML / fragment — prepend body above the template
+  return `${wrappedBody}\n${templateHtml}`;
+}
+
 export function CampaignForm({
   mode = "create",
   initialData,
@@ -79,9 +112,12 @@ export function CampaignForm({
 }: CampaignFormProps) {
   const router = useRouter();
   const [showPreview, setShowPreview] = useState(false);
-  const [selectedTemplateId, setSelectedTemplateId] = useState<
-    string | undefined
-  >();
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string | undefined>();
+  /**
+   * We keep the raw template HTML separately so we can always re-merge
+   * if the user edits the body after picking a template.
+   */
+  const [selectedTemplateHtml, setSelectedTemplateHtml] = useState<string>("");
 
   const createCampaign = useCreateCampaign();
   const updateCampaign = useUpdateCampaign();
@@ -110,16 +146,24 @@ export function CampaignForm({
   const isRecurring = watch("isRecurring");
   const recurringFrequency = watch("recurringFrequency");
 
-  /* ---------------- Template Selection ---------------- */
+  /* ---------------- Template Selection Logic ---------------- */
 
   const handleTemplateSelect = (template: Template | null) => {
     if (template) {
       setSelectedTemplateId(template.id);
+      setSelectedTemplateHtml(template.content);
       setValue("subject", template.subject, { shouldValidate: true });
-      setValue("content", template.content, { shouldValidate: true });
+
+      // Merge current body with newly selected template
+      const currentBody = form.getValues("content");
+      const merged = mergeBodyWithTemplate(currentBody, template.content);
+      setValue("content", merged, { shouldValidate: true });
     } else {
+      // Template deselected — restore just the body without template HTML
       setSelectedTemplateId(undefined);
-      setValue("content", "", { shouldValidate: false });
+      setSelectedTemplateHtml("");
+      // We can't perfectly "un-merge" HTML, so we leave content as-is.
+      // If desired, you could store the original body separately and restore it here.
     }
   };
 
@@ -135,32 +179,25 @@ export function CampaignForm({
 
   function onSubmit(data: CampaignFormValues) {
     const payload = {
-      name: data.name,
+      content: data.content, // Already contains merged body + template
       subject: data.subject,
-      content: data.content,
+      name: data.name,
       groupIds: data.groupIds,
       isRecurring: data.isRecurring,
-      ...(data.isRecurring && {
-        recurringFrequency: data.recurringFrequency,
-        recurringTime: data.recurringTime,
-        recurringTimezone: data.recurringTimezone,
-        ...(data.recurringDaysOfWeek?.length && {
-          recurringDaysOfWeek: data.recurringDaysOfWeek,
-        }),
-        ...(data.recurringDayOfMonth && {
-          recurringDayOfMonth: data.recurringDayOfMonth,
-        }),
-        ...(data.recurringStartDate && {
-          recurringStartDate: data.recurringStartDate,
-        }),
-        ...(data.recurringEndDate && {
-          recurringEndDate: data.recurringEndDate,
-        }),
-        ...(data.customCronExpression && {
-          customCronExpression: data.customCronExpression,
-        }),
-      }),
-      ...(!data.isRecurring && { sendImmediately: data.sendImmediately }),
+      ...(data.isRecurring
+        ? {
+            recurringFrequency: data.recurringFrequency,
+            recurringTime: data.recurringTime,
+            recurringTimezone: data.recurringTimezone,
+            recurringDaysOfWeek: data.recurringDaysOfWeek,
+            recurringDayOfMonth: data.recurringDayOfMonth,
+            recurringStartDate: data.recurringStartDate,
+            recurringEndDate: data.recurringEndDate,
+            customCronExpression: data.customCronExpression,
+          }
+        : {
+            sendImmediately: data.sendImmediately,
+          }),
     };
 
     if (mode === "edit" && campaignId) {
@@ -174,6 +211,16 @@ export function CampaignForm({
       });
     }
   }
+
+  /* ---------------- Preview HTML ---------------- */
+
+  /**
+   * For the preview we always show: body (from the editor) + template.
+   * If no template is selected, we just show the editor content directly.
+   */
+  const previewHtml = selectedTemplateHtml
+    ? mergeBodyWithTemplate(content, selectedTemplateHtml)
+    : content;
 
   return (
     <div className="max-w-7xl mx-auto">
@@ -189,7 +236,6 @@ export function CampaignForm({
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <div className="grid lg:grid-cols-3 gap-6">
-            {/* LEFT PANEL - Text Editor */}
             <div className="lg:col-span-2 space-y-6">
               <Card>
                 <CardHeader className="pb-4">
@@ -197,9 +243,6 @@ export function CampaignForm({
                     <FileText className="h-5 w-5 text-muted-foreground" />
                     Email Content
                   </CardTitle>
-                  <CardDescription>
-                    Compose your email message using the editor below.
-                  </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-5">
                   <FormField
@@ -239,7 +282,6 @@ export function CampaignForm({
               </Card>
             </div>
 
-            {/* RIGHT PANEL - Settings & Actions */}
             <div className="lg:col-span-1 space-y-6">
               <Card>
                 <CardHeader className="pb-4">
@@ -302,15 +344,23 @@ export function CampaignForm({
                     timezone={watch("recurringTimezone")}
                     daysOfWeek={watch("recurringDaysOfWeek")}
                     dayOfMonth={watch("recurringDayOfMonth")}
-                    startDate={watch("recurringStartDate") ? new Date(watch("recurringStartDate")!) : undefined}
-                    endDate={watch("recurringEndDate") ? new Date(watch("recurringEndDate")!) : undefined}
+                    startDate={
+                      watch("recurringStartDate")
+                        ? new Date(watch("recurringStartDate")!)
+                        : undefined
+                    }
+                    endDate={
+                      watch("recurringEndDate")
+                        ? new Date(watch("recurringEndDate")!)
+                        : undefined
+                    }
                     customCron={watch("customCronExpression")}
                     onChange={handleScheduleChange}
                   />
                 </CardContent>
               </Card>
 
-              <Card className="sticky bottom-6">
+              <Card className="sticky bottom-6 shadow-lg">
                 <CardContent className="pt-6">
                   <div className="flex flex-col gap-3">
                     {!isRecurring && (
@@ -329,7 +379,9 @@ export function CampaignForm({
                             </FormControl>
                             <div className="space-y-1 leading-none">
                               <FormLabel>Send Immediately</FormLabel>
-                              <FormDescription>Uncheck to save as draft</FormDescription>
+                              <FormDescription>
+                                Uncheck to save as draft
+                              </FormDescription>
                             </div>
                           </FormItem>
                         )}
@@ -349,12 +401,25 @@ export function CampaignForm({
                     <Separator />
 
                     <div className="flex gap-3">
-                      <Button type="button" variant="outline" className="flex-1" onClick={() => router.back()}>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="flex-1"
+                        onClick={() => router.back()}
+                      >
                         Cancel
                       </Button>
-                      <Button type="submit" className="flex-1" disabled={isSubmitting}>
+                      <Button
+                        type="submit"
+                        className="flex-1"
+                        disabled={isSubmitting}
+                      >
                         <Save className="mr-2 h-4 w-4" />
-                        {isSubmitting ? "Saving..." : mode === "create" ? "Create" : "Save"}
+                        {isSubmitting
+                          ? "Saving..."
+                          : mode === "create"
+                          ? "Create"
+                          : "Save"}
                       </Button>
                     </div>
                   </div>
@@ -367,15 +432,14 @@ export function CampaignForm({
 
       {showPreview && (
         <CampaignPreview
-          html={content}
-          customMessage={subject}
+          html={previewHtml}
+          subject={subject}
           onClose={() => setShowPreview(false)}
         />
       )}
     </div>
   );
 }
-
 // "use client";
 
 // import { useState } from "react";
@@ -384,7 +448,6 @@ export function CampaignForm({
 // import * as z from "zod";
 // import { useRouter } from "next/navigation";
 // import { Eye, Save, Calendar, FileText } from "lucide-react";
-// import dynamic from "next/dynamic";
 
 // import { Button } from "@/components/ui/button";
 // import {
@@ -411,26 +474,14 @@ export function CampaignForm({
 // import { TemplateSelector } from "./TemplateSelector";
 // import { RecurringScheduleForm } from "./RecurringScheduleForm";
 // import { CampaignPreview } from "./CampaignPreview";
+// import { RichTextEditor } from "./RichTextEditor"; // Import the new editor
+
 // import {
 //   useCreateCampaign,
 //   useUpdateCampaign,
 // } from "@/lib/api/hooks/useCampaigns";
 // import { Template } from "@/types/entities/template.types";
 // import { RecurringFrequency } from "@/types/entities/campaign.types";
-
-// // Dynamic import for CampaignEditor to avoid SSR issues with GrapeJS
-// const CampaignEditor = dynamic(
-//   () =>
-//     import("./CampaignEditor").then((mod) => ({ default: mod.CampaignEditor })),
-//   {
-//     ssr: false,
-//     loading: () => (
-//       <div className="h-[600px] border rounded-lg flex items-center justify-center bg-muted/30">
-//         Loading editor...
-//       </div>
-//     ),
-//   }
-// );
 
 // /* ---------------- Schema ---------------- */
 
@@ -510,7 +561,6 @@ export function CampaignForm({
 //       setValue("content", template.content, { shouldValidate: true });
 //     } else {
 //       setSelectedTemplateId(undefined);
-//       // Clear content when switching to no template
 //       setValue("content", "", { shouldValidate: false });
 //     }
 //   };
@@ -526,7 +576,6 @@ export function CampaignForm({
 //   /* ---------------- Submit ---------------- */
 
 //   function onSubmit(data: CampaignFormValues) {
-//     // Build API payload
 //     const payload = {
 //       name: data.name,
 //       subject: data.subject,
@@ -553,45 +602,37 @@ export function CampaignForm({
 //           customCronExpression: data.customCronExpression,
 //         }),
 //       }),
-//       ...(!data.isRecurring && { sendImmediately: data.sendImmediately }), // Only applicable if not recurring
+//       ...(!data.isRecurring && { sendImmediately: data.sendImmediately }),
 //     };
 
 //     if (mode === "edit" && campaignId) {
 //       updateCampaign.mutate(
 //         { id: campaignId, data: payload },
-//         {
-//           onSuccess: () => {
-//             router.push("/client/campaigns");
-//           },
-//         }
+//         { onSuccess: () => router.push("/client/campaigns") }
 //       );
 //     } else {
 //       createCampaign.mutate(payload, {
-//         onSuccess: () => {
-//           router.push("/client/campaigns");
-//         },
+//         onSuccess: () => router.push("/client/campaigns"),
 //       });
 //     }
 //   }
 
 //   return (
 //     <div className="max-w-7xl mx-auto">
-//       {/* Page Header */}
 //       <div className="mb-6">
 //         <h1 className="text-2xl font-bold tracking-tight">
 //           {mode === "create" ? "Create Campaign" : "Edit Campaign"}
 //         </h1>
 //         <p className="text-muted-foreground">
-//           Design your email campaign and configure delivery settings
+//           Write your email content and configure delivery settings
 //         </p>
 //       </div>
 
 //       <Form {...form}>
 //         <form onSubmit={form.handleSubmit(onSubmit)}>
 //           <div className="grid lg:grid-cols-3 gap-6">
-//             {/* ========== LEFT PANEL - Email Content Only ========== */}
+//             {/* LEFT PANEL - Text Editor */}
 //             <div className="lg:col-span-2 space-y-6">
-//               {/* Email Content Card */}
 //               <Card>
 //                 <CardHeader className="pb-4">
 //                   <CardTitle className="text-lg flex items-center gap-2">
@@ -599,12 +640,10 @@ export function CampaignForm({
 //                     Email Content
 //                   </CardTitle>
 //                   <CardDescription>
-//                     Design the email your recipients will receive. Drag blocks
-//                     to build your layout.
+//                     Compose your email message using the editor below.
 //                   </CardDescription>
 //                 </CardHeader>
 //                 <CardContent className="space-y-5">
-//                   {/* Subject */}
 //                   <FormField
 //                     control={form.control}
 //                     name="subject"
@@ -622,7 +661,6 @@ export function CampaignForm({
 //                     )}
 //                   />
 
-//                   {/* Content Editor */}
 //                   <FormField
 //                     control={form.control}
 //                     name="content"
@@ -630,7 +668,7 @@ export function CampaignForm({
 //                       <FormItem>
 //                         <FormLabel>Email Body</FormLabel>
 //                         <FormControl>
-//                           <CampaignEditor
+//                           <RichTextEditor
 //                             value={field.value}
 //                             onChange={field.onChange}
 //                           />
@@ -643,18 +681,13 @@ export function CampaignForm({
 //               </Card>
 //             </div>
 
-//             {/* ========== RIGHT PANEL - Campaign Details + Schedule + Actions ========== */}
+//             {/* RIGHT PANEL - Settings & Actions */}
 //             <div className="lg:col-span-1 space-y-6">
-//               {/* Campaign Details Card */}
 //               <Card>
 //                 <CardHeader className="pb-4">
 //                   <CardTitle className="text-lg">Campaign Details</CardTitle>
-//                   <CardDescription>
-//                     Basic information about your campaign
-//                   </CardDescription>
 //                 </CardHeader>
 //                 <CardContent className="space-y-5">
-//                   {/* Campaign Name */}
 //                   <FormField
 //                     control={form.control}
 //                     name="name"
@@ -662,32 +695,21 @@ export function CampaignForm({
 //                       <FormItem>
 //                         <FormLabel>Campaign Name</FormLabel>
 //                         <FormControl>
-//                           <Input
-//                             placeholder="e.g., Summer Sale Announcement"
-//                             {...field}
-//                           />
+//                           <Input placeholder="Internal name" {...field} />
 //                         </FormControl>
-//                         <FormDescription>
-//                           Internal name to identify this campaign
-//                         </FormDescription>
 //                         <FormMessage />
 //                       </FormItem>
 //                     )}
 //                   />
 
-//                   {/* Template Selection */}
 //                   <div className="space-y-2">
 //                     <Label>Use Template (Optional)</Label>
 //                     <TemplateSelector
 //                       selectedId={selectedTemplateId}
 //                       onSelect={handleTemplateSelect}
 //                     />
-//                     <p className="text-xs text-muted-foreground">
-//                       Select a template to auto-fill subject and content
-//                     </p>
 //                   </div>
 
-//                   {/* Recipients - Group Selection */}
 //                   <FormField
 //                     control={form.control}
 //                     name="groupIds"
@@ -701,27 +723,18 @@ export function CampaignForm({
 //                             error={fieldState.error?.message}
 //                           />
 //                         </FormControl>
-//                         <FormDescription>
-//                           Select recipient groups
-//                         </FormDescription>
 //                       </FormItem>
 //                     )}
 //                   />
 //                 </CardContent>
 //               </Card>
 
-//               {/* Schedule & Frequency Card */}
 //               <Card>
 //                 <CardHeader className="pb-4">
 //                   <div className="flex items-center gap-2">
 //                     <Calendar className="h-5 w-5 text-muted-foreground" />
-//                     <CardTitle className="text-lg">
-//                       Schedule & Frequency
-//                     </CardTitle>
+//                     <CardTitle className="text-lg">Schedule</CardTitle>
 //                   </div>
-//                   <CardDescription>
-//                     Configure when and how often to send
-//                   </CardDescription>
 //                 </CardHeader>
 //                 <CardContent>
 //                   <RecurringScheduleForm
@@ -731,27 +744,17 @@ export function CampaignForm({
 //                     timezone={watch("recurringTimezone")}
 //                     daysOfWeek={watch("recurringDaysOfWeek")}
 //                     dayOfMonth={watch("recurringDayOfMonth")}
-//                     startDate={
-//                       watch("recurringStartDate")
-//                         ? new Date(watch("recurringStartDate")!)
-//                         : undefined
-//                     }
-//                     endDate={
-//                       watch("recurringEndDate")
-//                         ? new Date(watch("recurringEndDate")!)
-//                         : undefined
-//                     }
+//                     startDate={watch("recurringStartDate") ? new Date(watch("recurringStartDate")!) : undefined}
+//                     endDate={watch("recurringEndDate") ? new Date(watch("recurringEndDate")!) : undefined}
 //                     customCron={watch("customCronExpression")}
 //                     onChange={handleScheduleChange}
 //                   />
 //                 </CardContent>
 //               </Card>
 
-//               {/* Actions Card */}
 //               <Card className="sticky bottom-6">
 //                 <CardContent className="pt-6">
 //                   <div className="flex flex-col gap-3">
-//                     {/* Send Immediately Checkbox */}
 //                     {!isRecurring && (
 //                       <FormField
 //                         control={form.control}
@@ -763,61 +766,37 @@ export function CampaignForm({
 //                                 type="checkbox"
 //                                 checked={field.value}
 //                                 onChange={field.onChange}
-//                                 className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+//                                 className="h-4 w-4 rounded border-gray-300"
 //                               />
 //                             </FormControl>
 //                             <div className="space-y-1 leading-none">
 //                               <FormLabel>Send Immediately</FormLabel>
-//                               <FormDescription>
-//                                 If unchecked, campaign will be saved as draft
-//                               </FormDescription>
+//                               <FormDescription>Uncheck to save as draft</FormDescription>
 //                             </div>
 //                           </FormItem>
 //                         )}
 //                       />
 //                     )}
 
-//                     {content && (
-//                       <Button
-//                         type="button"
-//                         variant="outline"
-//                         className="w-full"
-//                         onClick={() => setShowPreview(true)}
-//                       >
-//                         <Eye className="mr-2 h-4 w-4" />
-//                         Preview Email
-//                       </Button>
-//                     )}
+//                     <Button
+//                       type="button"
+//                       variant="outline"
+//                       className="w-full"
+//                       onClick={() => setShowPreview(true)}
+//                       disabled={!content}
+//                     >
+//                       <Eye className="mr-2 h-4 w-4" /> Preview Email
+//                     </Button>
 
 //                     <Separator />
 
 //                     <div className="flex gap-3">
-//                       <Button
-//                         type="button"
-//                         variant="outline"
-//                         className="flex-1"
-//                         onClick={() => router.back()}
-//                       >
+//                       <Button type="button" variant="outline" className="flex-1" onClick={() => router.back()}>
 //                         Cancel
 //                       </Button>
-
-//                       <Button
-//                         type="submit"
-//                         className="flex-1"
-//                         disabled={isSubmitting}
-//                       >
-//                         {isSubmitting ? (
-//                           mode === "create" ? (
-//                             "Creating..."
-//                           ) : (
-//                             "Saving..."
-//                           )
-//                         ) : (
-//                           <>
-//                             <Save className="mr-2 h-4 w-4" />
-//                             {mode === "create" ? "Create" : "Save"}
-//                           </>
-//                         )}
+//                       <Button type="submit" className="flex-1" disabled={isSubmitting}>
+//                         <Save className="mr-2 h-4 w-4" />
+//                         {isSubmitting ? "Saving..." : mode === "create" ? "Create" : "Save"}
 //                       </Button>
 //                     </div>
 //                   </div>

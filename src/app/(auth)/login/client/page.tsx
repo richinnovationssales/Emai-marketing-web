@@ -40,48 +40,99 @@ export default function ClientLoginPage() {
     },
   });
 
-  const onSubmit = async (data: LoginUserInput) => {
-    setIsLoading(true);
+  // ============================================
+// SHARED UTILITY — put this in a shared file or
+// copy it into both login files
+// ============================================
+
+function getErrorMessage(error: unknown): string {
+  // ✅ Axios errors: real backend message is at error.response.data.message
+  if (typeof error === 'object' && error !== null && 'response' in error) {
+    const msg = (error as any).response?.data?.message;
+    if (msg) return Array.isArray(msg) ? msg.join(', ') : String(msg);
+  }
+  if (error instanceof Error) return error.message;
+  if (typeof error === 'string') return error;
+  return 'Something went wrong. Please try again.';
+}
+
+
+
+// ============================================
+// CLIENT LOGIN — onSubmit fix
+// ============================================
+
+const onSubmit = async (data: LoginUserInput) => {
+  setIsLoading(true);
+  try {
+    const response = await authService.loginUser({
+      email: data.email,
+      password: data.password,
+    });
+
+    dispatch(setCredentials({
+      user: response.user,
+      token: response.accessToken,
+    }));
+
+    toast.success('Welcome back!', {
+      description: 'You have successfully logged in.',
+    });
+
+    // ✅ Navigation inside try — only runs on success
+    router.push('/client/dashboard');
+  } catch (error: unknown) {
+    // ✅ Extract real backend message, not the generic Axios one
+    const message = getErrorMessage(error);
+    dispatch(setError(message));
+    toast.error('Login failed', { description: message });
+  } finally {
+    setIsLoading(false);
+  }
+};
+
+  // const onSubmit = async (data: LoginUserInput) => {
+  //   setIsLoading(true);
     
-    try {
-      const response = await authService.loginUser({
-        email: data.email,
-        password: data.password,
-      });
+  //   try {
+  //     const response = await authService.loginUser({
+  //       email: data.email,
+  //       password: data.password,
+  //     });
 
-      // Store credentials in Redux and localStorage
-      dispatch(setCredentials({
-        user: response.user,
-        token: response.accessToken,
-      }));
+  //     // Store credentials in Redux and localStorage
+  //     dispatch(setCredentials({
+  //       user: response.user,
+  //       token: response.accessToken,
+  //     }));
 
-      toast.success('Welcome back!', {
-        description: 'You have successfully logged in.',
-      });
+  //     toast.success('Welcome back!', {
+  //       description: 'You have successfully logged in.',
+  //     });
 
-      // Route based on user role
-      const role = response.user.role;
-      if (role === UserRole.CLIENT_SUPER_ADMIN || role === UserRole.CLIENT_ADMIN) {
-        router.push('/client/dashboard');
-      } else if (role === UserRole.CLIENT_USER) {
-        router.push('/client/dashboard');
-      } else {
-        // Fallback for any other role
-        router.push('/');
-      }
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error 
-        ? error.message 
-        : 'Invalid email or password. Please try again.';
+  //     // Route based on user role
+  //     const role = response.user.role;
+  //     if (role === UserRole.CLIENT_SUPER_ADMIN || role === UserRole.CLIENT_ADMIN) {
+  //       router.push('/client/dashboard');
+  //     } else if (role === UserRole.CLIENT_USER) {
+  //       router.push('/client/dashboard');
+  //     } else {
+  //       // Fallback for any other role
+  //       // router.push('/');
+  //     }
+  //   } catch (error: unknown) {
+  //     const errorMessage = error instanceof Error 
+  //       ? error.message 
+  //       : 'Invalid email or password. Please try again.';
       
-      dispatch(setError(errorMessage));
-      toast.error('Login failed', {
-        description: errorMessage,
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  //     dispatch(setError(errorMessage));
+  //     toast.error('Login failed', {
+  //       description: errorMessage,
+  //     });
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
 
   return (
     <AuthCard
