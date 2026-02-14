@@ -19,7 +19,6 @@ interface GroupCardProps {
 
 export function GroupCard({ group, onEdit, onDelete, showActions = true, className }: GroupCardProps) {
   const router = useRouter();
-  console.log('Rendering GroupCard for group:', group);
 
   const handleCardClick = () => {
     router.push(`/client/groups/${group.id}`);
