@@ -52,15 +52,15 @@ export default function GroupDetailPage() {
 
   
 
-  const handleRemoveContact = async (contactId: string) => {
-    // TODO: Implement remove contact from group API call
-    toast.info('Remove contact functionality will be implemented with contact-group API');
-  };
+  // const handleRemoveContact = async (contactId: string) => {
+  //   // TODO: Implement remove contact from group API call
+  //   toast.info('Remove contact functionality will be implemented with contact-group API');
+  // };
 
-  const handleAddContacts = () => {
-    // TODO: Implement add contacts dialog
-    toast.info('Add contacts functionality will be implemented with contact-group API');
-  };
+  // const handleAddContacts = () => {
+  //   // TODO: Implement add contacts dialog
+  //   toast.info('Add contacts functionality will be implemented with contact-group API');
+  // };
 
   if (loading) {
     return (
@@ -161,12 +161,12 @@ export default function GroupDetailPage() {
                  For now, let's restore structure first.
                  The ContactsTable has the 'Remove from Group' button.
              */}
-             {isAdmin && (
+             {/* {isAdmin && (
               <Button onClick={handleAddContacts} size="sm" className="gap-2">
                 <UserPlus className="h-4 w-4" />
                 Add Contacts
               </Button>
-            )}
+            )} */}
           </div>
         </CardHeader>
         <CardContent>
