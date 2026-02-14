@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { Bell, Search, Menu } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import Link from "next/link";
+import { Bell, Search, Menu } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,38 +11,40 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { useAuth } from '@/lib/api/hooks/useAuth';
-import { ModeToggle } from '@/components/layout/ModeToggle';
-import { cn } from '@/lib/utils';
-import { useEffect, useState } from 'react';
+} from "@/components/ui/dropdown-menu";
+import { useAuth } from "@/lib/api/hooks/useAuth";
+import { ModeToggle } from "@/components/layout/ModeToggle";
+import { cn } from "@/lib/utils";
+import { useEffect, useState } from "react";
 
 interface ClientHeaderProps {
   onMenuClick?: () => void;
   sidebarCollapsed?: boolean;
 }
 
-export function ClientHeader({ onMenuClick, sidebarCollapsed = false }: ClientHeaderProps) {
+export function ClientHeader({
+  onMenuClick,
+  sidebarCollapsed = false,
+}: ClientHeaderProps) {
   const { user, logout } = useAuth();
-    const [mounted, setMounted] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-    if (!mounted) return null;
-
+  if (!mounted) return null;
 
   return (
     <header
       className={cn(
-        'fixed top-0 right-0 z-20 h-16',
-        'border-b bg-white/80 dark:bg-slate-900/80 backdrop-blur-md',
-        'border-slate-200 dark:border-slate-700/50',
-        'transition-all duration-300',
+        "fixed top-0 right-0 z-20 h-16",
+        "border-b bg-white/80 dark:bg-slate-900/80 backdrop-blur-md",
+        "border-slate-200 dark:border-slate-700/50",
+        "transition-all duration-300",
         // Full width on mobile, offset on desktop
-        'left-0 md:left-64',
-        sidebarCollapsed && 'md:left-16'
+        "left-0 md:left-64",
+        sidebarCollapsed && "md:left-16",
       )}
     >
       <div className="flex h-full items-center justify-between px-6">
@@ -98,7 +100,7 @@ export function ClientHeader({ onMenuClick, sidebarCollapsed = false }: ClientHe
                 </div>
                 <div className="hidden md:block text-left">
                   <p className="text-sm font-medium text-slate-900 dark:text-white first-letter:uppercase">
-                    {user?.email?.split('@')[0] || 'User'}
+                    {user?.email?.split("@")[0] || "User"}
                   </p>
                   <p className="text-xs text-slate-500 dark:text-slate-400">
                     Client
@@ -109,7 +111,16 @@ export function ClientHeader({ onMenuClick, sidebarCollapsed = false }: ClientHe
             <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuLabel>
                 <div className="flex flex-col">
-                  <p className="text-sm font-medium">{user?.email?.split('@')[0]}</p>
+                  {/* <p className="text-sm font-medium">{user?.email?.split('@')[0]}</p> */}
+                  <p className="text-sm font-medium">
+                    {(() => {
+                      const name = user?.email?.split("@")[0];
+                      return name
+                        ? name.charAt(0).toUpperCase() + name.slice(1)
+                        : "User";
+                    })()}
+                  </p>
+
                   <p className="text-xs text-muted-foreground">{user?.email}</p>
                 </div>
               </DropdownMenuLabel>
@@ -121,7 +132,7 @@ export function ClientHeader({ onMenuClick, sidebarCollapsed = false }: ClientHe
                 <Link href="/client/settings">Account Settings</Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem 
+              <DropdownMenuItem
                 className="text-red-600 dark:text-red-400 cursor-pointer"
                 onClick={logout}
               >

@@ -91,7 +91,8 @@ export default function AdminClientsPage() {
 
     const handleEditClient = (client: ClientWithStats) => {
         // TODO: Implement edit functionality
-        toast.info('Edit functionality coming soon');
+         router.push(`/admin/clients/${client.id}`);
+        // toast.info('Edit functionality coming soon');
     };
 
     const handleApproveClient = async (id: string) => {

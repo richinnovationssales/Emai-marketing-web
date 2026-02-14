@@ -60,8 +60,8 @@ export function CampaignTable({ data, onDelete }: CampaignTableProps) {
                       campaign.status === "SENT"
                         ? "text-green-600"
                         : campaign.status === "APPROVED"
-                        ? "text-blue-600"
-                        : "text-muted-foreground"
+                          ? "text-blue-600"
+                          : "text-muted-foreground"
                     }`}
                   >
                     {campaign.status}
@@ -69,7 +69,15 @@ export function CampaignTable({ data, onDelete }: CampaignTableProps) {
                 </TableCell>
 
                 <TableCell className="text-muted-foreground">
-                  {campaign.updatedAt}
+                  {new Date(campaign.updatedAt).toLocaleString("en-GB", {
+                    day: "2-digit",
+                    month: "short",
+                    year: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    second: "2-digit",
+                    hour12: false,
+                  })}
                 </TableCell>
 
                 <TableCell className="text-right space-x-2">

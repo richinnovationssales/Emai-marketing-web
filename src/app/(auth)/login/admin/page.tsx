@@ -32,6 +32,7 @@ import {
   LoginAdminInput,
 } from "@/lib/validations/auth.schemas";
 import { ROUTES } from "@/lib/constants/routes";
+import { getErrorMessage } from "@/lib/utils/error-handler";
 
 // Separate component that uses useSearchParams
 function AdminLoginForm() {
@@ -51,18 +52,27 @@ function AdminLoginForm() {
     },
   });
 
-  async function onSubmit(data: LoginAdminInput) {
-    setIsLoading(true);
-    try {
-      await loginAdmin(data);
-      toast.success("Logged in successfully");
-      await new Promise((r) => setTimeout(r, 100));
-      window.location.href = redirectUrl;
-    } catch (error: any) {
-      toast.error(error.message || "Login failed");
-      setIsLoading(false);
-    }
+// ============================================
+// ADMIN LOGIN — onSubmit fix
+// ============================================
+
+async function onSubmit(data: LoginAdminInput) {
+  setIsLoading(true);
+  try {
+    await loginAdmin(data);
+    toast.success('Logged in successfully');
+    // ✅ router.push stays inside try — only runs on success
+    router.push(redirectUrl);
+  } catch (error: unknown) {
+    // ✅ Extract real backend message, not the generic Axios one
+    toast.error('Login failed', { description: getErrorMessage(error) });
+  } finally {
+    // ✅ Always resets — was missing on success path before
+    setIsLoading(false);
   }
+}
+
+
 
   return (
     <Card>

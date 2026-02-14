@@ -55,11 +55,12 @@ export const clientService = {
 
   // Update client
   update: async (id: string, clientData: UpdateClientDTO): Promise<Client> => {
-    const { data } = await apiClient.put<ApiResponse<Client>>(
+    const { data } = await apiClient.put<Client>(
       API_ENDPOINTS.CLIENTS.BY_ID(id),
       clientData
     );
-    return data.data;
+    // console.log('update return data :',data)
+    return data;
   },
 
   // Delete client
