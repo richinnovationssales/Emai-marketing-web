@@ -81,7 +81,7 @@ export function CampaignTable({ data, onDelete }: CampaignTableProps) {
                 </TableCell>
 
                 <TableCell className="text-right space-x-2">
-                  <Link href={`/client/campaigns/${campaign.id}`}>
+                  {/* <Link href={`/client/campaigns/${campaign.id}`}>
                     <Button variant="ghost" size="icon" className="h-8 w-8">
                       <Eye className="h-4 w-4" />
                     </Button>
