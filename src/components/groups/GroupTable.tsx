@@ -55,7 +55,7 @@ export function GroupTable({ groups, onEdit, onDelete, showActions = true }: Gro
           <TableHeader>
             <TableRow>
               <TableHead>Name</TableHead>
-              <TableHead>Description</TableHead>
+              {/* <TableHead>Description</TableHead> */}
               <TableHead className="text-center">Contacts</TableHead>
               <TableHead>Created</TableHead>
               {showActions && <TableHead className="text-right">Actions</TableHead>}
@@ -74,15 +74,15 @@ export function GroupTable({ groups, onEdit, onDelete, showActions = true }: Gro
                   <TableCell className="font-medium" onClick={() => handleView(group.id)}>
                     {group.name}
                   </TableCell>
-                  <TableCell onClick={() => handleView(group.id)}>
+                  {/* <TableCell onClick={() => handleView(group.id)}>
                     <span className="text-sm text-slate-600 dark:text-slate-400 line-clamp-1">
                       {group.description || '-'}
                     </span>
-                  </TableCell>
+                  </TableCell> */}
                   <TableCell className="text-center" onClick={() => handleView(group.id)}>
                     <Badge variant="secondary" className="gap-1">
                       <Users className="h-3 w-3" />
-                      {/* {group._count?.contacts ?? 0} */}
+                      {group._count?.contactGroups ?? 0}
                     </Badge>
                   </TableCell>
                   <TableCell onClick={() => handleView(group.id)}>

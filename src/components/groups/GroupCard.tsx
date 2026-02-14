@@ -19,6 +19,7 @@ interface GroupCardProps {
 
 export function GroupCard({ group, onEdit, onDelete, showActions = true, className }: GroupCardProps) {
   const router = useRouter();
+  console.log('Rendering GroupCard for group:', group);
 
   const handleCardClick = () => {
     router.push(`/client/groups/${group.id}`);
@@ -35,7 +36,7 @@ export function GroupCard({ group, onEdit, onDelete, showActions = true, classNa
   };
 
   const createdDate = new Date(group.createdAt).toLocaleDateString();
-  const contactCount = group.createdBy?.contacts?.length;
+  const contactCount = group._count?.contactGroups || 0;
 
 
   return (
