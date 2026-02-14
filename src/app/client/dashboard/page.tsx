@@ -61,10 +61,8 @@ interface DashboardData {
 const fetchDashboardData = async (): Promise<DashboardData> => {
   try {
     const response = await dashboardService.getClientDashboard();
-   console.log("Response ",response)
-   const totalEmails = response ?? 0;
     const stats: DashboardStats = {
-      contacts: response.contacts.length,
+      contacts: response.contactCount,
       campaigns: response.campaigns.length,
       emailsSent: response.campaigns.reduce((total, campaign) => {
         return (
