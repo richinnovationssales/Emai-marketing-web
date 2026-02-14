@@ -35,7 +35,7 @@ export function GroupCard({ group, onEdit, onDelete, showActions = true, classNa
   };
 
   const createdDate = new Date(group.createdAt).toLocaleDateString();
-  const contactCount = group.createdBy?.contacts?.length;
+  const contactCount = group._count?.contactGroups || 0;
 
 
   return (

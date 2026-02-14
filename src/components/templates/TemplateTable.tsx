@@ -79,11 +79,11 @@ export function TemplateTable({
                 </TableCell>
 
                 <TableCell className="text-right space-x-2">
-                  <Link href={`/client/templates/${template.id}/edit`}>
-                    {/* <Button variant="ghost" size="icon" className="h-8 w-8">
+                  {/* <Link href={`/client/templates/${template.id}/edit`}>
+                    <Button variant="ghost" size="icon" className="h-8 w-8">
                       <Edit2 className="h-4 w-4" />
-                    </Button> */}
-                  </Link>
+                    </Button>
+                  </Link> */}
 
                   {/* {onDuplicate && (
                     <Button

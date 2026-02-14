@@ -7,6 +7,9 @@ export interface Group {
   clientId: string;
   createdAt: string;
   updatedAt: string;
+  _count?: {
+    contactGroups: number;
+  };
 
   createdBy?: {
     id: string;
