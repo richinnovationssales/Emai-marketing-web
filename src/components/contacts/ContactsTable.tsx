@@ -58,10 +58,20 @@ export function ContactsTable({ data, onDelete, groupId }: ContactsTableProps) {
   // --- PAGINATION LOGIC ---
   const totalPages = Math.ceil(data.length / rowsPerPage);
   
-  const paginatedData = useMemo(() => {
-    const start = (currentPage - 1) * rowsPerPage;
-    return data.slice(start, start + rowsPerPage);
-  }, [data, currentPage, rowsPerPage]);
+//   const paginatedData = useMemo(() => {
+//     const start = (currentPage - 1) * rowsPerPage;
+//     return data.slice(start, start + rowsPerPage);
+//   }, [data, currentPage, rowsPerPage]);
+const safeData = useMemo(
+  () => data.filter((c): c is BaseContact => Boolean(c?.id)),
+  [data]
+);
+
+const paginatedData = useMemo(() => {
+  const start = (currentPage - 1) * rowsPerPage;
+  return safeData.slice(start, start + rowsPerPage);
+}, [safeData, currentPage, rowsPerPage]);
+
 
   // Reset to first page if data changes (e.g. filtered or deleted)
   useEffect(() => {
