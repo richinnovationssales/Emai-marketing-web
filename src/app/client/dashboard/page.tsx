@@ -62,7 +62,7 @@ const fetchDashboardData = async (): Promise<DashboardData> => {
   try {
     const response = await dashboardService.getClientDashboard();
     const stats: DashboardStats = {
-      contacts: response.contactCount,
+      contacts: response?.contacts?.length || 0,
       campaigns: response.campaigns.length,
       emailsSent: response.campaigns.reduce((total, campaign) => {
         return (
