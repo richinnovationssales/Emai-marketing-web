@@ -62,6 +62,7 @@ export default function CampaignsPage() {
                 subject: c.subject,
                 status: c.status,
                 updatedAt: c.updatedAt,
+                groups: c?.groups?.map((g: { id: string; name: string }) => ({ id: g.id, name: g.name })),
               }))}
               onDelete={handleDelete}
             />

@@ -40,6 +40,7 @@ export interface Campaign {
     
     // Relations
     createdBy?: UserSummary;
+    groups?: { id: string; name: string }[];
     createdAt: string;
     updatedAt: string;
     _count?: {

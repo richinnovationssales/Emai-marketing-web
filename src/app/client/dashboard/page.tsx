@@ -62,7 +62,7 @@ const fetchDashboardData = async (): Promise<DashboardData> => {
   try {
     const response = await dashboardService.getClientDashboard();
     const stats: DashboardStats = {
-      contacts: response?.contacts?.length || 0,
+      contacts: response?.contactCount || 0,
       campaigns: response.campaigns.length,
       emailsSent: response.campaigns.reduce((total, campaign) => {
         return (
@@ -81,9 +81,12 @@ const fetchDashboardData = async (): Promise<DashboardData> => {
         const delivered =
           campaign.emailEvents?.filter((e) => e.eventType === "DELIVERED")
             .length || 0;
-        const opened =
-          campaign.emailEvents?.filter((e) => e.eventType === "OPENED")
-            .length || 0;
+        const uniqueOpenedEmails = new Set(
+          campaign.emailEvents
+            ?.filter((e) => e.eventType === "OPENED")
+            .map((e) => e.contactEmail)
+        );
+        const opened = uniqueOpenedEmails.size;
 
         return {
           name: campaign.name,

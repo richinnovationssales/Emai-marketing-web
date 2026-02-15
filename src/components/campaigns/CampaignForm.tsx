@@ -46,7 +46,7 @@ import { RecurringFrequency } from "@/types/entities/campaign.types";
 const campaignSchema = z.object({
   name: z.string().min(1, "Campaign name is required").max(255),
   subject: z.string().min(1, "Subject is required").max(500),
-  content: z.string().min(1, "Content is required"),
+  content: z.string().default(""),
   groupIds: z.array(z.string()).min(1, "Select at least one recipient group"),
 
   // Recurring Schedule
@@ -78,7 +78,7 @@ function mergeBodyWithTemplate(body: string, templateHtml: string): string {
   if (!body) return templateHtml;
   if (!templateHtml) return body;
 
-  const wrappedBody = `<div class="campaign-body-content" style="margin-bottom:16px;">${body}</div>`;
+  const wrappedBody = `<div class="campaign-body-content" style="margin-bottom:16px; background-color:#ffffff; padding:16px 24px; color:#000000;">${body}</div>`;
 
   if (templateHtml.includes("{{content}}")) {
     return templateHtml.replace("{{content}}", wrappedBody);
@@ -198,6 +198,13 @@ export function CampaignForm({
   /* ---------------- Submit ---------------- */
 
   function onSubmit(data: CampaignFormValues) {
+    if (!data.content && !activeTemplateHtml) {
+      form.setError("content", {
+        message: "Provide either email body or a template",
+      });
+      return;
+    }
+
     const finalContent = activeTemplateHtml
       ? mergeBodyWithTemplate(data.content, activeTemplateHtml)
       : data.content;
