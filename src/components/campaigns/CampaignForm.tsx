@@ -74,33 +74,20 @@ interface CampaignFormProps {
 
 /* ---------------- Merge Helper ---------------- */
 
-/**
- * Merges the user-written rich text body with an HTML template.
- * Called ONCE — either at preview time or at submit time. Never called
- * when updating the form field, so the body in the editor always stays clean.
- *
- * Strategy (in priority order):
- *  1. If the template contains a `{{content}}` placeholder → inject body there.
- *  2. If the template contains a `<body>` tag → prepend body as the first child of <body>.
- *  3. Fallback → prepend body wrapped in a <div> directly above the raw template HTML.
- */
 function mergeBodyWithTemplate(body: string, templateHtml: string): string {
   if (!body) return templateHtml;
   if (!templateHtml) return body;
 
   const wrappedBody = `<div class="campaign-body-content" style="margin-bottom:16px;">${body}</div>`;
 
-  // 1. Explicit placeholder
   if (templateHtml.includes("{{content}}")) {
     return templateHtml.replace("{{content}}", wrappedBody);
   }
 
-  // 2. Has a <body> tag — insert as first child
   if (/<body[\s>]/i.test(templateHtml)) {
     return templateHtml.replace(/(<body[^>]*>)/i, `$1\n${wrappedBody}\n`);
   }
 
-  // 3. Bare HTML / fragment — prepend body above the template
   return `${wrappedBody}\n${templateHtml}`;
 }
 
@@ -114,11 +101,11 @@ export function CampaignForm({
   const router = useRouter();
   const [showPreview, setShowPreview] = useState(false);
 
-  // Dropdown template state — stores raw HTML only, never written into the form field
+  // Template state — stores raw HTML for preview & merge on submit
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | undefined>();
   const [selectedTemplateHtml, setSelectedTemplateHtml] = useState<string>("");
 
-  // Uploaded HTML file state — stores raw HTML only, never written into the form field
+  // Uploaded HTML file state
   const [uploadedFileName, setUploadedFileName] = useState<string>("");
   const [uploadedTemplateHtml, setUploadedTemplateHtml] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -145,7 +132,7 @@ export function CampaignForm({
   });
 
   const { watch, setValue } = form;
-  const content = watch("content"); // Always the raw body text — no template mixed in
+  const content = watch("content");
   const subject = watch("subject");
   const isRecurring = watch("isRecurring");
   const recurringFrequency = watch("recurringFrequency");
@@ -165,7 +152,6 @@ export function CampaignForm({
       setUploadedTemplateHtml("");
       if (fileInputRef.current) fileInputRef.current.value = "";
 
-      // Only update subject from the template — do NOT touch content
       setValue("subject", template.subject, { shouldValidate: true });
     } else {
       setSelectedTemplateId(undefined);
@@ -191,7 +177,6 @@ export function CampaignForm({
       setSelectedTemplateId(undefined);
       setSelectedTemplateHtml("");
 
-      // Store the raw template HTML — do NOT merge into content here
       setUploadedFileName(file.name);
       setUploadedTemplateHtml(html);
     };
@@ -213,7 +198,6 @@ export function CampaignForm({
   /* ---------------- Submit ---------------- */
 
   function onSubmit(data: CampaignFormValues) {
-    // Merge body + template exactly once here before sending
     const finalContent = activeTemplateHtml
       ? mergeBodyWithTemplate(data.content, activeTemplateHtml)
       : data.content;
@@ -261,13 +245,6 @@ export function CampaignForm({
       });
     }
   }
-
-  /* ---------------- Preview HTML ---------------- */
-
-  // Merge once here for preview — content is always the clean raw body
-  const previewHtml = activeTemplateHtml
-    ? mergeBodyWithTemplate(content, activeTemplateHtml)
-    : content;
 
   return (
     <div className="max-w-7xl mx-auto">
@@ -331,6 +308,49 @@ export function CampaignForm({
                   />
                 </CardContent>
               </Card>
+
+              {/* ── Inline Template Preview ── */}
+              {activeTemplateHtml && (
+                <Card>
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-lg flex items-center gap-2">
+                        <Eye className="h-5 w-5 text-muted-foreground" />
+                        Template Preview
+                      </CardTitle>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setSelectedTemplateId(undefined);
+                          setSelectedTemplateHtml("");
+                          setUploadedFileName("");
+                          setUploadedTemplateHtml("");
+                          if (fileInputRef.current) fileInputRef.current.value = "";
+                        }}
+                      >
+                        <X className="h-4 w-4 mr-1" />
+                        Remove Template
+                      </Button>
+                    </div>
+                    <CardDescription>
+                      Your body text above will be combined with this template on send.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="rounded-md border overflow-hidden bg-white">
+                      <iframe
+                        srcDoc={activeTemplateHtml}
+                        title="Template Preview"
+                        className="w-full border-0"
+                        style={{ minHeight: "300px", maxHeight: "500px" }}
+                        sandbox="allow-same-origin"
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
             </div>
 
             {/* ── RIGHT PANEL — Settings & Actions ── */}
@@ -520,7 +540,7 @@ export function CampaignForm({
 
       {showPreview && (
         <CampaignPreview
-          html={previewHtml}
+          html={activeTemplateHtml ? mergeBodyWithTemplate(content, activeTemplateHtml) : content}
           subject={subject}
           onClose={() => setShowPreview(false)}
         />

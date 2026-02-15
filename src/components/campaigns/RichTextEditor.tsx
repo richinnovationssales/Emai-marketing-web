@@ -8,10 +8,10 @@ import TextAlign from "@tiptap/extension-text-align";
 import Placeholder from "@tiptap/extension-placeholder";
 import Image from "@tiptap/extension-image";
 
-import { 
-  Bold, Italic, Underline as UnderlineIcon, 
-  List, ListOrdered, Quote, Code, Heading2, 
-  Link as LinkIcon, AlignLeft, AlignCenter, 
+import {
+  Bold, Italic, Underline as UnderlineIcon,
+  List, ListOrdered, Quote, Code, Heading2,
+  Link as LinkIcon, AlignLeft, AlignCenter,
   AlignRight, Eraser, User, ImageIcon
 } from "lucide-react";
 
@@ -52,7 +52,7 @@ export function RichTextEditor({ value, onChange }: RichTextEditorProps) {
     immediatelyRender: false,
     editorProps: {
       attributes: {
-        class: "min-h-[350px] w-full rounded-md border border-input bg-background px-4 py-3 text-sm ring-offset-background focus-visible:outline-none prose prose-sm max-w-none focus:outline-none",
+        class: "min-h-[100px] w-full rounded-md border border-input bg-background px-4 py-3 text-sm ring-offset-background focus-visible:outline-none prose prose-sm max-w-none focus:outline-none",
       },
     },
     onUpdate: ({ editor }) => {
