@@ -44,4 +44,10 @@ export const groupService = {
       data: { groupId, contactIds }
     });
   },
+
+  // Get contacts in a group via contact-groups endpoint
+  getContactsByGroup: async (groupId: string) => {
+    const response = await apiClient.get(`${API_ENDPOINTS.CONTACT_GROUPS}/${groupId}`);
+    return response.data;
+  },
 };

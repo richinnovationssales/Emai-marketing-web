@@ -9,6 +9,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Edit2, Trash2, Eye } from "lucide-react";
 import Link from "next/link";
 import { CampaignStatus } from "@/types/enums/campaign-status.enum";
@@ -19,6 +20,7 @@ export interface Campaign {
   subject: string;
   status: CampaignStatus;
   updatedAt: string;
+  groups?: { id: string; name: string }[];
 }
 
 interface CampaignTableProps {
@@ -35,6 +37,7 @@ export function CampaignTable({ data, onDelete }: CampaignTableProps) {
             <TableHead>Name</TableHead>
             <TableHead>Subject</TableHead>
             <TableHead>Status</TableHead>
+            <TableHead>Groups</TableHead>
             <TableHead>Last Updated</TableHead>
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
@@ -43,7 +46,7 @@ export function CampaignTable({ data, onDelete }: CampaignTableProps) {
         <TableBody>
           {data.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={5} className="h-24 text-center">
+              <TableCell colSpan={6} className="h-24 text-center">
                 No campaigns found.
               </TableCell>
             </TableRow>
@@ -66,6 +69,20 @@ export function CampaignTable({ data, onDelete }: CampaignTableProps) {
                   >
                     {campaign.status}
                   </span>
+                </TableCell>
+
+                <TableCell>
+                  {campaign.groups && campaign.groups.length > 0 ? (
+                    <div className="flex flex-wrap gap-1">
+                      {campaign.groups.map((g) => (
+                        <Badge key={g.id} variant="secondary" className="text-xs">
+                          {g.name}
+                        </Badge>
+                      ))}
+                    </div>
+                  ) : (
+                    <span className="text-muted-foreground">—</span>
+                  )}
                 </TableCell>
 
                 <TableCell className="text-muted-foreground">
