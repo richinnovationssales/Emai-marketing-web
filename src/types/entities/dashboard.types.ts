@@ -137,6 +137,7 @@ export interface ClientDashboardResponse {
   groups: GroupWithDetails[];
   templates: DashboardTemplate[];
   emailsRemaining: number; 
+  contactCount: number;
   
 }
 
