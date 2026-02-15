@@ -163,9 +163,9 @@ const paginatedData = useMemo(() => {
                   onCheckedChange={(val) => handleSelectAll(!!val)} 
                 />
               </TableHead>
-              <TableHead>Name</TableHead>
+              <TableHead>Group </TableHead>
               <TableHead>Email</TableHead>
-              <TableHead>Phone</TableHead>
+              {/* <TableHead>Phone</TableHead> */}
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -186,10 +186,10 @@ const paginatedData = useMemo(() => {
                     />
                   </TableCell>
                   <TableCell className="font-medium">
-                    {getFieldValue(contact, 'firstName')} {getFieldValue(contact, 'lastName')}
+                    {getFieldValue(contact, 'groupName')} {getFieldValue(contact, 'lastName')}
                   </TableCell>
                   <TableCell>{getFieldValue(contact, 'email')}</TableCell>
-                  <TableCell>{getFieldValue(contact, 'phone') || '-'}</TableCell>
+                  {/* <TableCell>{getFieldValue(contact, 'phone') || '-'}</TableCell> */}
                   <TableCell className="text-right space-x-1">
                     <Button variant="ghost" size="icon" asChild>
                       <Link href={`/client/contacts/${contact.id}/edit`}>
