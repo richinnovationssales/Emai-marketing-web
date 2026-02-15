@@ -279,7 +279,7 @@ export function ContactForm({
                                     </FormItem>
                                 )}
                             /> */}
-              <FormField
+              {/* <FormField
                 control={form.control}
                 name="groupId"
                 render={({ field }) => (
@@ -305,7 +305,7 @@ export function ContactForm({
                     <FormMessage />
                   </FormItem>
                 )}
-              />
+              /> */}
             </div>
 
             {/* Custom Fields Section */}
