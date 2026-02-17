@@ -172,7 +172,8 @@ async function onSubmit(data: LoginAdminInput) {
 export default function AdminLoginClient() {
   return (
     <div className="min-h-dvh w-full flex items-center justify-center px-4">
-      <div className="mx-auto w-full max-w-sm space-y-6">
+      {/* <div className="mx-auto w-full max-w-sm space-y-6"> */}
+      <div className="mx-auto w-full max-w-sm space-y-4">
         <Suspense fallback={
           <Card>
             <CardContent className="pt-6">
