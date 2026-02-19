@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Search } from "lucide-react";
+import { LoginPopover } from "@/components/landing/LoginPopover";
 
 export default function Home() {
   return (
@@ -346,9 +347,7 @@ export default function Home() {
             </Link>
           ))}
         </nav>
-        <Link href="/login" className="text-[13px] font-semibold text-foreground hover:text-[#d4a017] transition-colors">
-          Sign in
-        </Link>
+        <LoginPopover />
       </footer>
 
       <style>{`
