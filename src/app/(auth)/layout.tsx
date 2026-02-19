@@ -1,4 +1,4 @@
-import Image from 'next/image';
+import Image from "next/image";
 
 export default function AuthLayout({
   children,
@@ -8,25 +8,34 @@ export default function AuthLayout({
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden">
       {/* Background */}
-      <div className="absolute inset-0 bg-stone-50 dark:bg-slate-900" />
+      <div className="absolute inset-0" style={{ background: "#0d1b2e" }} />
 
-      {/* Subtle pattern overlay */}
+      {/* Hex pattern overlay */}
       <div
-        className="absolute inset-0 opacity-[0.04] dark:opacity-[0.06]"
+        className="absolute inset-0 opacity-[0.07]"
         style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/G%3E%3C/svg%3E")`,
+          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='52'%3E%3Cpath d='M15 2l15 8.66v17.32L15 36.64 0 27.98V10.66z' fill='none' stroke='%23d4a017' stroke-width='1'/%3E%3Cpath d='M45 2l15 8.66v17.32L45 36.64 30 27.98V10.66z' fill='none' stroke='%23d4a017' stroke-width='1'/%3E%3Cpath d='M30 28l15 8.66v17.32L30 62.64 15 53.98V36.66z' fill='none' stroke='%23d4a017' stroke-width='1'/%3E%3C/svg%3E")`,
+        }}
+      />
+
+      {/* Gold radial glow */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background:
+            "radial-gradient(ellipse at 50% 40%, rgba(212,160,23,0.07), transparent 65%)",
         }}
       />
 
       {/* Content */}
       <div className="relative z-10 w-full max-w-sm px-4 py-8">
-        {/* Logo — sits directly above the card, visually attached */}
-        <div className="mb-6 flex justify-center">
+        {/* Logo */}
+        <div className="mb-7 flex justify-center">
           <Image
-            src="/images/email-logo.png"
+            src="/images/email-logo-png.png"
             alt="BEE Smart Campaigns"
-            width={140}
-            height={50}
+            width={160}
+            height={56}
             priority
             className="object-contain"
           />
@@ -37,6 +46,46 @@ export default function AuthLayout({
     </div>
   );
 }
+
+// import Image from 'next/image';
+
+// export default function AuthLayout({
+//   children,
+// }: {
+//   children: React.ReactNode;
+// }) {
+//   return (
+//     <div className="relative flex min-h-screen items-center justify-center overflow-hidden">
+//       {/* Background */}
+//       <div className="absolute inset-0 bg-stone-50 dark:bg-slate-900" />
+
+//       {/* Subtle pattern overlay */}
+//       <div
+//         className="absolute inset-0 opacity-[0.04] dark:opacity-[0.06]"
+//         style={{
+//           backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/G%3E%3C/svg%3E")`,
+//         }}
+//       />
+
+//       {/* Content */}
+//       <div className="relative z-10 w-full max-w-sm px-4 py-8">
+//         {/* Logo — sits directly above the card, visually attached */}
+//         <div className="mb-6 flex justify-center">
+//           <Image
+//             src="/images/email-logo.png"
+//             alt="BEE Smart Campaigns"
+//             width={140}
+//             height={50}
+//             priority
+//             className="object-contain"
+//           />
+//         </div>
+
+//         {children}
+//       </div>
+//     </div>
+//   );
+// }
 
 // import Image from 'next/image';
 
