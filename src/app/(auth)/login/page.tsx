@@ -100,7 +100,7 @@ export default function LoginPage() {
       </div>
 
       {/* Feature pills */}
-      <div
+      {/* <div
         className="px-8 py-4 border-t flex flex-wrap gap-2"
         style={{ borderColor: "rgba(255,255,255,0.06)" }}
       >
@@ -118,7 +118,7 @@ export default function LoginPage() {
             {text}
           </div>
         ))}
-      </div>
+      </div> */}
 
       {/* Footer */}
       <div className="px-8 pb-5 pt-1">

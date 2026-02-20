@@ -89,7 +89,7 @@ export function LoginPopover() {
         onClick={() => setOpen((prev) => !prev)}
         className="text-[13px] font-semibold text-foreground hover:text-[#d4a017] transition-colors cursor-pointer"
       >
-        Sign in
+        Sign In
       </button>
 
       {/* Floating Panel */}
