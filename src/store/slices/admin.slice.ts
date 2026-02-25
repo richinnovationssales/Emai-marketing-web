@@ -142,6 +142,20 @@ export const toggleAdminStatus = createAsyncThunk(
   },
 );
 
+export const promoteToSuperAdmin = createAsyncThunk(
+  "admin/promoteToSuperAdmin",
+  async (id: string, { rejectWithValue }) => {
+    try {
+      const response = await adminService.promoteToSuperAdmin(id);
+      return response.admin;
+    } catch (error: any) {
+      return rejectWithValue(
+        error.response?.data?.message || error.message || "Failed to promote admin",
+      );
+    }
+  },
+);
+
 // ============ CLIENT ASYNC THUNKS ============
 export const fetchClients = createAsyncThunk(
   "admin/fetchClients",
@@ -546,6 +560,28 @@ const adminSlice = createSlice({
         },
       )
       .addCase(toggleAdminStatus.rejected, (state, action) => {
+        state.adminLoading = false;
+        state.adminError = action.payload as string;
+      });
+
+    builder
+      .addCase(promoteToSuperAdmin.pending, (state) => {
+        state.adminLoading = true;
+        state.adminError = null;
+      })
+      .addCase(
+        promoteToSuperAdmin.fulfilled,
+        (state, action: PayloadAction<Admin>) => {
+          state.adminLoading = false;
+          const index = state.admins.findIndex(
+            (admin) => admin.id === action.payload.id,
+          );
+          if (index !== -1) {
+            state.admins[index] = action.payload;
+          }
+        },
+      )
+      .addCase(promoteToSuperAdmin.rejected, (state, action) => {
         state.adminLoading = false;
         state.adminError = action.payload as string;
       });

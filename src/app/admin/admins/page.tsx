@@ -9,6 +9,7 @@ import {
   Trash2,
   CheckCircle,
   XCircle,
+  ShieldCheck,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -38,16 +39,30 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { ROUTES } from "@/lib/constants/routes";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import {
   fetchAdmins,
   deleteAdmin as deleteAdminAction,
   toggleAdminStatus as toggleAdminStatusAction,
+  promoteToSuperAdmin as promoteToSuperAdminAction,
   selectAdmins,
   selectAdminLoading,
   selectAdminInitialized,
 } from "@/store/slices/admin.slice";
+import { selectCurrentUser } from "@/store/slices/auth.slice";
+import { AdminRole } from "@/types/enums/admin-role.enum";
+import { Admin } from "@/types/entities/admin.types";
 import { getErrorMessage } from "@/lib/utils/error";
 
 export default function AdminsPage() {
@@ -55,9 +70,15 @@ export default function AdminsPage() {
   const admins = useAppSelector(selectAdmins);
   const loading = useAppSelector(selectAdminLoading);
   const initialized = useAppSelector(selectAdminInitialized);
+  const currentUser = useAppSelector(selectCurrentUser);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [mounted, setMounted] = useState(false);
+  const [promoteDialogOpen, setPromoteDialogOpen] = useState(false);
+  const [adminToPromote, setAdminToPromote] = useState<Admin | null>(null);
+  const [promoting, setPromoting] = useState(false);
+
+  const isSuperAdmin = currentUser?.role === AdminRole.SUPER_ADMIN;
 
   useEffect(() => {
     setMounted(true);
@@ -84,13 +105,13 @@ export default function AdminsPage() {
         "Toggling status for admin ID:",
         id,
         "Current status:",
-        currentStatus
+        currentStatus,
       );
       await dispatch(
-        toggleAdminStatusAction({ id, isActive: !currentStatus })
+        toggleAdminStatusAction({ id, isActive: !currentStatus }),
       ).unwrap();
       toast.success(
-        `Admin ${!currentStatus ? "activated" : "deactivated"} successfully`
+        `Admin ${!currentStatus ? "activated" : "deactivated"} successfully`,
       );
     } catch (error: any) {
       console.error("Failed to update admin status:", error);
@@ -98,13 +119,32 @@ export default function AdminsPage() {
     }
   };
 
+  const openPromoteDialog = (admin: Admin) => {
+    setAdminToPromote(admin);
+    setPromoteDialogOpen(true);
+  };
+
+  const handlePromoteToSuperAdmin = async () => {
+    if (!adminToPromote) return;
+
+    setPromoting(true);
+    try {
+      await dispatch(promoteToSuperAdminAction(adminToPromote.id)).unwrap();
+      toast.success(`${adminToPromote.email} has been promoted to Super Admin`);
+    } catch (error: any) {
+      console.error("Failed to promote admin:", error);
+      toast.error(getErrorMessage(error, "Failed to promote admin"));
+    } finally {
+      setPromoting(false);
+      setPromoteDialogOpen(false);
+      setAdminToPromote(null);
+    }
+  };
+
   const filteredAdmins =
     admins?.filter((admin) =>
-      admin?.email.toLowerCase().includes(searchQuery.toLowerCase())
+      admin?.email.toLowerCase().includes(searchQuery.toLowerCase()),
     ) || [];
-
-  console.log("filteredAdmins:", filteredAdmins);
-  console.log("adminsss:", admins);
 
   return (
     <div className="space-y-6">
@@ -173,15 +213,25 @@ export default function AdminsPage() {
                         {admin.email}
                       </TableCell>
                       <TableCell>
-                        <Badge variant="outline">{admin.role}</Badge>
+                        <Badge
+                          variant={
+                            admin.role === AdminRole.SUPER_ADMIN
+                              ? "default"
+                              : "outline"
+                          }
+                        >
+                          {admin.role === AdminRole.SUPER_ADMIN
+                            ? "Super Admin"
+                            : "Admin"}
+                        </Badge>
                       </TableCell>
                       <TableCell>
-                         <Badge
-                            variant={admin.isActive ? 'default' : 'destructive'}
-                            className="capitalize"
-                          >
-                            {admin.isActive ? 'Active' : 'Inactive'}
-                          </Badge>
+                        <Badge
+                          variant={admin.isActive ? "default" : "destructive"}
+                          className="capitalize"
+                        >
+                          {admin.isActive ? "Active" : "Inactive"}
+                        </Badge>
                       </TableCell>
                       <TableCell>
                         {mounted
@@ -200,8 +250,6 @@ export default function AdminsPage() {
                             <DropdownMenuLabel>Actions</DropdownMenuLabel>
                             <DropdownMenuItem
                               onClick={() => {
-                                console.log("Clicked status toggle for admin ID:", admin.id);
-                                console.log("Current status isActive:", admin.isActive);
                                 handleStatusToggle(admin.id, admin.isActive);
                               }}
                             >
@@ -217,6 +265,15 @@ export default function AdminsPage() {
                                 </>
                               )}
                             </DropdownMenuItem>
+                            {isSuperAdmin &&
+                              admin.role !== AdminRole.SUPER_ADMIN && (
+                                <DropdownMenuItem
+                                  onClick={() => openPromoteDialog(admin)}
+                                >
+                                  <ShieldCheck className="mr-2 h-4 w-4" />
+                                  Promote to Super Admin
+                                </DropdownMenuItem>
+                              )}
                             <DropdownMenuSeparator />
                             <DropdownMenuItem
                               className="text-destructive"
@@ -235,6 +292,38 @@ export default function AdminsPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Promote to Super Admin Confirmation Modal */}
+      <AlertDialog open={promoteDialogOpen} onOpenChange={setPromoteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Promote to Super Admin</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to promote{" "}
+              <span className="font-semibold text-foreground">
+                {adminToPromote?.email}
+              </span>{" "}
+              to Super Admin? This will grant them full administrative
+              privileges including the ability to manage other admins. This
+              action cannot be easily undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              disabled={promoting}
+              onClick={() => setAdminToPromote(null)}
+            >
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handlePromoteToSuperAdmin}
+              disabled={promoting}
+            >
+              {promoting ? "Promoting..." : "Yes, Promote"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

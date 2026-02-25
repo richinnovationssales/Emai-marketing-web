@@ -60,6 +60,7 @@
     BASE: '/admin/users',
     BY_ID: (id: string) => `/admin/users/${id}`,
     TOGGLE_STATUS: (id: string) => `/admin/users/${id}/toggle-status`,
+    PROMOTE_SUPER_ADMIN: (id: string) => `/admin/users/${id}/promote-super-admin`,
   },
   DOMAIN: {
     BASE: '/client/domain',
