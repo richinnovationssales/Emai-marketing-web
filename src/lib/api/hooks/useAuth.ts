@@ -68,11 +68,11 @@ export const useAuth = () => {
     authService.logout();
     dispatch(logoutAction());
 
-    router.push('/login');
+    router.push('/');
     router.refresh();
 
     setTimeout(() => {
-      window.location.href = '/login';
+      window.location.href = '/';
     }, 100);
   }, [dispatch, router]);
 
