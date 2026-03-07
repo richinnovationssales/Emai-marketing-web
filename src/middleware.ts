@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-const publicRoutes = ['/', '/login', '/login/admin', '/login/client', '/register','/coming-soon']
+const publicRoutes = ['/', '/login', '/login/admin', '/login/client', '/register','/comming-soon']
 
 const ADMIN_ROLES = ['ADMIN', 'SUPER_ADMIN']
 const CLIENT_ROLES = ['CLIENT_SUPER_ADMIN', 'CLIENT_ADMIN', 'CLIENT_USER']
@@ -12,7 +12,9 @@ export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   const isLoginPage = pathname === '/login' || pathname.startsWith('/login/')
-  const isAdminRoute = pathname.startsWith('/admin')
+  // const isAdminRoute = pathname.startsWith('/admin')
+    const isAdminRoute = pathname.startsWith('/admin') || pathname.startsWith('/superadmin')
+
   const isClientRoute = pathname.startsWith('/client')
 
 
@@ -45,7 +47,8 @@ if (pathname === '/' && token) {
     }
 
     // Unknown role → force logout
-    return NextResponse.redirect(new URL('/login', request.url))
+    // return NextResponse.redirect(new URL('/login', request.url))
+    return NextResponse.next()
   }
 
   // ============================================
