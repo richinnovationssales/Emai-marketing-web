@@ -54,7 +54,7 @@ export default function Home() {
 
         {/* Text */}
         <div className="z-10 max-w-lg space-y-6 text-center md:text-left">
-          <h1 className="text-3xl sm:text-4xl xl:text-5xl font-extrabold text-white leading-tight">
+          <h1 className="text-3xl sm:text-4xl xl:text-5xl font-semibold text-white leading-tight">
             Don&apos;t Just Send Emails. Start Conversations That Stick.
           </h1>
           <p className="text-sm font-light leading-relaxed mx-auto md:mx-0 max-w-sm" style={{ color: "rgba(255,255,255,0.6)" }}>
