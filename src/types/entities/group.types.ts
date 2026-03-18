@@ -10,6 +10,7 @@ export interface Group {
   _count?: {
     contactGroups: number;
   };
+  contactGroups?: ContactGroupWithDetails[];
 
   createdBy?: {
     id: string;
@@ -105,6 +106,11 @@ export interface GroupWithContactsResponse {
     createdAt: string;
     updatedAt: string;
     contactGroups: ContactGroupWithDetails[];
+}
+
+export interface GroupContactsPageResponse {
+  contacts: ContactWithCustomFields[];
+  nextCursor: string | null;
 }
 
 export type CreateGroupData = CreateGroupDTO;
