@@ -3,6 +3,7 @@ import { API_ENDPOINTS } from '../endpoints';
 import {
   Group,
   GroupWithContactsResponse,
+  GroupContactsPageResponse,
   CreateGroupData,
   UpdateGroupData
 } from '@/types/entities/group.types';
@@ -48,6 +49,17 @@ export const groupService = {
   // Get contacts in a group via contact-groups endpoint
   getContactsByGroup: async (groupId: string) => {
     const response = await apiClient.get(`${API_ENDPOINTS.CONTACT_GROUPS}/${groupId}`);
+    return response.data;
+  },
+
+  // Get contacts in a group with cursor-based pagination
+  getGroupContacts: async (
+    groupId: string,
+    params?: { limit?: number; cursor?: string }
+  ): Promise<GroupContactsPageResponse> => {
+    const response = await apiClient.get(`${API_ENDPOINTS.GROUPS}/${groupId}/contacts`, {
+      params,
+    });
     return response.data;
   },
 };

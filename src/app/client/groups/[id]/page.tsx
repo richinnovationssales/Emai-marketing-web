@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import {
@@ -36,6 +36,10 @@ import {
 import { ArrowLeft, Users, Calendar, UserPlus, Loader2, Search } from 'lucide-react';
 import { toast } from 'sonner';
 import { selectCurrentUser } from '@/store/slices/auth.slice';
+import { groupService } from '@/lib/api/services/group.service';
+import { ContactWithCustomFields } from '@/types/entities/group.types';
+
+const PAGE_SIZE = 20;
 
 export default function GroupDetailPage() {
   const params = useParams();
@@ -56,6 +60,12 @@ export default function GroupDetailPage() {
   const [selectedContactIds, setSelectedContactIds] = useState<string[]>([]);
   const [isAssigning, setIsAssigning] = useState(false);
 
+  // Paginated contacts state
+  const [paginatedContacts, setPaginatedContacts] = useState<ContactWithCustomFields[]>([]);
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [hasInitializedFromGroup, setHasInitializedFromGroup] = useState(false);
+
   useEffect(() => {
     if (groupId) {
       dispatch(fetchGroupById(groupId));
@@ -63,8 +73,30 @@ export default function GroupDetailPage() {
 
     return () => {
       dispatch(clearCurrentGroup());
+      setPaginatedContacts([]);
+      setNextCursor(null);
+      setHasInitializedFromGroup(false);
     };
   }, [groupId, dispatch]);
+
+  // Seed paginated contacts from the initial group fetch (7 contacts inline)
+  useEffect(() => {
+    if (group?.contactGroups && !hasInitializedFromGroup) {
+      const initialContacts = group.contactGroups.map((cg) => cg.contact);
+      setPaginatedContacts(initialContacts);
+      setHasInitializedFromGroup(true);
+
+      // If the group has more contacts than what was returned inline, there are more pages
+      const totalCount = group._count?.contactGroups ?? initialContacts.length;
+      if (initialContacts.length < totalCount) {
+        // Set cursor to the last contact id so we can fetch more
+        const lastContact = initialContacts[initialContacts.length - 1];
+        setNextCursor(lastContact?.id ?? null);
+      } else {
+        setNextCursor(null);
+      }
+    }
+  }, [group, hasInitializedFromGroup]);
 
   // Fetch all contacts when the add dialog opens
   useEffect(() => {
@@ -73,14 +105,29 @@ export default function GroupDetailPage() {
     }
   }, [addDialogOpen, dispatch, allContacts.length]);
 
-  // Contacts already in this group
-  const contacts = useMemo(
-    () => group?.contactGroups?.map((cg) => cg.contact) || [],
-    [group?.contactGroups]
-  );
+  // Load more contacts via cursor-based pagination
+  const handleLoadMore = useCallback(async () => {
+    if (!nextCursor || isLoadingMore) return;
+    setIsLoadingMore(true);
+    try {
+      const response = await groupService.getGroupContacts(groupId, {
+        limit: PAGE_SIZE,
+        cursor: nextCursor,
+      });
+      setPaginatedContacts((prev) => [...prev, ...response.contacts]);
+      setNextCursor(response.nextCursor);
+    } catch {
+      toast.error('Failed to load more contacts');
+    } finally {
+      setIsLoadingMore(false);
+    }
+  }, [groupId, nextCursor, isLoadingMore]);
+
+  const totalCount = group?._count?.contactGroups ?? paginatedContacts.length;
+
   const existingContactIds = useMemo(
-    () => new Set(contacts.map((c) => c.id)),
-    [contacts]
+    () => new Set(paginatedContacts.map((c) => c.id)),
+    [paginatedContacts]
   );
 
   // Filter contacts for the add dialog: exclude already-in-group, apply search
@@ -111,7 +158,10 @@ export default function GroupDetailPage() {
       setAddDialogOpen(false);
       setSelectedContactIds([]);
       setSearchQuery('');
-      // Re-fetch group to update the contacts list
+      // Reset and re-fetch group to get fresh contacts
+      setHasInitializedFromGroup(false);
+      setPaginatedContacts([]);
+      setNextCursor(null);
       dispatch(fetchGroupById(groupId));
     } catch (err: unknown) {
       toast.error((err as string) || 'Failed to add contacts');
@@ -120,7 +170,7 @@ export default function GroupDetailPage() {
     }
   };
 
-  if (loading) {
+  if (loading && paginatedContacts.length === 0) {
     return (
       <div className="flex items-center justify-center h-96">
         <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
@@ -175,7 +225,7 @@ export default function GroupDetailPage() {
                 <CardTitle className="text-2xl">{group.name}</CardTitle>
                 <Badge variant="secondary" className="gap-1">
                   <Users className="h-3 w-3" />
-                  {contacts.length} {contacts.length === 1 ? 'contact' : 'contacts'}
+                  {totalCount} {totalCount === 1 ? 'contact' : 'contacts'}
                 </Badge>
               </div>
 
@@ -200,7 +250,9 @@ export default function GroupDetailPage() {
             <div>
               <CardTitle>Contacts</CardTitle>
               <CardDescription>
-                Manage contacts in this group
+                {paginatedContacts.length < totalCount
+                  ? `Showing ${paginatedContacts.length} of ${totalCount} contacts`
+                  : `Manage contacts in this group`}
               </CardDescription>
             </div>
             {isAdmin && (
@@ -213,9 +265,29 @@ export default function GroupDetailPage() {
         </CardHeader>
         <CardContent>
           <ContactsTable
-            data={contacts}
+            data={paginatedContacts}
             groupId={groupId}
           />
+
+          {/* Load More */}
+          {nextCursor && (
+            <div className="flex justify-center mt-4">
+              <Button
+                variant="outline"
+                onClick={handleLoadMore}
+                disabled={isLoadingMore}
+              >
+                {isLoadingMore ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Loading...
+                  </>
+                ) : (
+                  `Load More (${paginatedContacts.length} of ${totalCount})`
+                )}
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -302,7 +374,7 @@ export default function GroupDetailPage() {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-slate-900 dark:text-slate-100">
-              {contacts.length}
+              {totalCount}
             </div>
           </CardContent>
         </Card>
@@ -315,7 +387,7 @@ export default function GroupDetailPage() {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-slate-900 dark:text-slate-100">
-              {contacts.filter((c) => c.customFieldValues.length > 0).length}
+              {paginatedContacts.filter((c) => c.customFieldValues?.length > 0).length}
             </div>
           </CardContent>
         </Card>
@@ -328,7 +400,7 @@ export default function GroupDetailPage() {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-slate-900 dark:text-slate-100">
-              {contacts.reduce((sum, c) => sum + c.customFieldValues.length, 0)}
+              {paginatedContacts.reduce((sum, c) => sum + (c.customFieldValues?.length || 0), 0)}
             </div>
           </CardContent>
         </Card>
