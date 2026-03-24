@@ -48,6 +48,7 @@
     CLIENT: '/dashboard/client',
     EMPLOYEE: '/dashboard/employee',
     CAMPAIGN_PERFORMANCE: '/dashboard/campaign-performance',
+    CLIENT_EXPORT: '/dashboard/client/export',
   },
   ANALYTICS: {
     OVERVIEW: '/analytics/overview',

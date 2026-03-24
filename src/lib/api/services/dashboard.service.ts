@@ -52,5 +52,16 @@ export const dashboardService = {
     });
     return response.data;
   },
+
+  /**
+   * Download client dashboard report as Excel (server-side generated)
+   */
+  downloadDashboardReport: async (params?: { startDate?: string; endDate?: string }): Promise<Blob> => {
+    const response = await apiClient.get(API_ENDPOINTS.DASHBOARD.CLIENT_EXPORT, {
+      params,
+      responseType: 'blob',
+    });
+    return response.data;
+  },
 };
 

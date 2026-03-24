@@ -1,6 +1,6 @@
 import { UserRole } from '../enums/user-role.enum';
 import { CampaignStatus } from '../enums/campaign-status.enum';
-import { AnalyticsEmailEvent } from './analytics.types';
+import { AnalyticsEmailEvent, CampaignAnalyticsData } from './analytics.types';
 
 /**
  * Admin dashboard summary
@@ -69,7 +69,7 @@ export interface DashboardCampaign {
 }
 
 /**
- * Campaign with full details
+ * Campaign with full details (legacy - includes raw emailEvents)
  */
 export interface CampaignWithDetails {
   id: string;
@@ -85,6 +85,21 @@ export interface CampaignWithDetails {
   sentAt: string | null;
   emailEvents: AnalyticsEmailEvent[];
   groups: DashboardGroup[];
+}
+
+/**
+ * Campaign with pre-aggregated analytics (used by optimized dashboard)
+ */
+export interface CampaignWithAnalytics {
+  id: string;
+  name: string;
+  subject: string;
+  status: CampaignStatus;
+  clientId: string;
+  createdAt: string;
+  updatedAt: string;
+  sentAt: string | null;
+  analytics: CampaignAnalyticsData | null;
 }
 
 /**
@@ -131,14 +146,10 @@ export interface DashboardTemplate {
  * Client dashboard complete data
  */
 export interface ClientDashboardResponse {
-  users: DashboardUser[];
-  campaigns: CampaignWithDetails[];
-  contacts: ContactWithDetails[];
-  groups: GroupWithDetails[];
-  templates: DashboardTemplate[];
-  emailsRemaining: number; 
+  campaigns: CampaignWithAnalytics[];
+  emailsRemaining: number;
   contactCount: number;
-  
+  groupCount: number;
 }
 
 /**
