@@ -29,7 +29,6 @@ import {
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { dashboardService } from "@/lib/api/services/dashboard.service";
-import { exportDashboardToExcel, type RawCampaign } from "@/lib/utils/export-utils";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 
@@ -53,7 +52,6 @@ interface DashboardData {
   stats: DashboardStats;
   campaignsPerMonth: { month: string; count: number }[];
   campaignStats: CampaignStat[];
-  rawCampaigns: RawCampaign[];
 }
 
 /* ===================== API ===================== */
@@ -65,28 +63,17 @@ const fetchDashboardData = async (): Promise<DashboardData> => {
       contacts: response?.contactCount || 0,
       campaigns: response.campaigns.length,
       emailsSent: response.campaigns.reduce((total, campaign) => {
-        return (
-          total +
-          (campaign.emailEvents?.filter((e) => e.eventType === "SENT").length ||
-            0)
-        );
+        return total + (campaign.analytics?.totalSent ?? 0);
       }, 0),
-      
+
       emailsRemaining: response?.emailsRemaining,
     };
 
     const campaignStats: CampaignStat[] = response.campaigns
       .filter((c) => c.sentAt)
       .map((campaign) => {
-        const delivered =
-          campaign.emailEvents?.filter((e) => e.eventType === "DELIVERED")
-            .length || 0;
-        const uniqueOpenedEmails = new Set(
-          campaign.emailEvents
-            ?.filter((e) => e.eventType === "OPENED")
-            .map((e) => e.contactEmail)
-        );
-        const opened = uniqueOpenedEmails.size;
+        const delivered = campaign.analytics?.totalDelivered ?? 0;
+        const opened = campaign.analytics?.uniqueOpens ?? 0;
 
         return {
           name: campaign.name,
@@ -112,27 +99,10 @@ const fetchDashboardData = async (): Promise<DashboardData> => {
       return acc;
     }, [] as { month: string; count: number }[]);
 
-    const rawCampaigns: RawCampaign[] = response.campaigns
-      .filter((c) => c.sentAt)
-      .map((c) => ({
-        id: c.id,
-        name: c.name,
-        subject: c.subject,
-        sentAt: c.sentAt,
-        emailEvents: (c.emailEvents || []).map((e) => ({
-          id: e.id,
-          contactEmail: e.contactEmail,
-          eventType: e.eventType,
-          timestamp: e.timestamp,
-          errorMessage: e.errorMessage,
-        })),
-      }));
-
     return {
       stats,
       campaignsPerMonth,
       campaignStats,
-      rawCampaigns,
     };
   } catch (error) {
     console.error("Failed to fetch dashboard data:", error);
@@ -145,7 +115,6 @@ const fetchDashboardData = async (): Promise<DashboardData> => {
       },
       campaignsPerMonth: [],
       campaignStats: [],
-      rawCampaigns: [],
     };
   }
 };
@@ -191,7 +160,7 @@ export default function ClientDashboard() {
     });
   }, [data, startDate, endDate]);
 
-  // Aggregate daily performance data for chart + export
+  // Aggregate daily performance data for chart
   const areaChartData = useMemo(() => {
     const map: Record<
       string,
@@ -223,40 +192,33 @@ export default function ClientDashboard() {
     setDatePickerOpen(false);
   };
 
-  const handleDownload = () => {
+  const handleDownload = async () => {
     if (!data) return;
 
     setExporting(true);
     try {
-      const dateRange =
-        startDate && endDate
-          ? {
-              start: format(startDate, "yyyy-MM-dd"),
-              end: format(endDate, "yyyy-MM-dd"),
-            }
-          : undefined;
+      const params: { startDate?: string; endDate?: string } = {};
+      if (startDate) params.startDate = format(startDate, "yyyy-MM-dd");
+      if (endDate) params.endDate = format(endDate, "yyyy-MM-dd");
 
-      // Filter raw campaigns by the same date range as campaignStats
-      const filteredRawCampaigns = data.rawCampaigns.filter((c) => {
-        if (!startDate && !endDate) return true;
-        if (!c.sentAt) return false;
-        const d = new Date(c.sentAt);
-        if (startDate && d < startDate) return false;
-        if (endDate) {
-          const endOfDay = new Date(endDate);
-          endOfDay.setHours(23, 59, 59, 999);
-          if (d > endOfDay) return false;
-        }
-        return true;
-      });
+      const blob = await dashboardService.downloadDashboardReport(params);
 
-      exportDashboardToExcel({
-        stats: data.stats,
-        campaignStats: filteredCampaignStats,
-        dailyPerformance: areaChartData,
-        rawCampaigns: filteredRawCampaigns,
-        dateRange,
-      });
+      // Trigger browser download
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      const dateStr = new Date().toISOString().split("T")[0];
+      const rangeSuffix =
+        params.startDate && params.endDate
+          ? `_${params.startDate}_to_${params.endDate}`
+          : "";
+      a.download = `Dashboard_Report_${dateStr}${rangeSuffix}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Failed to download report:", error);
     } finally {
       setExporting(false);
     }
