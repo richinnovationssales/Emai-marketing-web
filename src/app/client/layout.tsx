@@ -1,9 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ClientSidebar } from '@/components/client/ClientSidebar';
 import { ClientHeader } from '@/components/client/ClientHeader';
 import { cn } from '@/lib/utils';
+import { analyticsService } from '@/lib/api/services/analytics.service';
+
+const RECALC_SESSION_KEY = 'analytics_recalculated';
 
 export default function ClientLayout({
   children,
@@ -12,6 +15,19 @@ export default function ClientLayout({
 }) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const recalcTriggered = useRef(false);
+
+  // Background recalculate: once per tab, covers new-tab / page-refresh scenarios
+  useEffect(() => {
+    if (recalcTriggered.current) return;
+    recalcTriggered.current = true;
+
+    if (sessionStorage.getItem(RECALC_SESSION_KEY)) return;
+
+    analyticsService.recalculateAll().then(() => {
+      sessionStorage.setItem(RECALC_SESSION_KEY, Date.now().toString());
+    }).catch(() => {});
+  }, []);
 
   return (
     <div className="min-h-screen bg-slate-100 dark:bg-slate-950">

@@ -10,8 +10,11 @@ import {
   selectAuthError
 } from '@/store/slices/auth.slice';
 import { authService } from '../services/auth.service';
+import { analyticsService } from '../services/analytics.service';
 import { AdminLoginDTO } from '@/types/entities/admin.types';
 import { UserLoginDTO } from '@/types/entities/user.types';
+
+const RECALC_SESSION_KEY = 'analytics_recalculated';
 
 export const useAuth = () => {
   const dispatch = useAppDispatch();
@@ -36,6 +39,11 @@ export const useAuth = () => {
         })
       );
 
+      // Background recalculate analytics on login (non-blocking)
+      analyticsService.recalculateAll().then(() => {
+        sessionStorage.setItem(RECALC_SESSION_KEY, Date.now().toString());
+      }).catch(() => {});
+
       return response;
     } catch (error) {
       throw error;
@@ -55,6 +63,11 @@ export const useAuth = () => {
           token: response.accessToken
         })
       );
+
+      // Background recalculate analytics on login (non-blocking)
+      analyticsService.recalculateAll().then(() => {
+        sessionStorage.setItem(RECALC_SESSION_KEY, Date.now().toString());
+      }).catch(() => {});
 
       return response;
     } catch (error) {

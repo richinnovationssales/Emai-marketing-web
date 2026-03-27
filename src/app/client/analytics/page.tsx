@@ -8,12 +8,14 @@ import {
   AlertTriangle,
   BarChart3,
   MousePointerClick,
+  RefreshCw,
 } from "lucide-react";
 import { analyticsService } from "@/lib/api/services/analytics.service";
 import { AnalyticsOverview } from "@/types/entities/analytics.types";
 import { AnalyticsMetricCard } from "@/components/analytics/AnalyticsMetricCard";
 import { DateRangeFilter } from "@/components/analytics/DateRangeFilter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import {
   Area,
   AreaChart,
@@ -24,6 +26,7 @@ import {
   CartesianGrid,
 } from "recharts";
 import { format } from "date-fns";
+import { toast } from "sonner";
 
 export default function AnalyticsPage() {
   const [overview, setOverview] = useState<AnalyticsOverview | null>(null);
@@ -31,6 +34,7 @@ export default function AnalyticsPage() {
   const [error, setError] = useState<string | null>(null);
   const [startDate, setStartDate] = useState<Date | undefined>();
   const [endDate, setEndDate] = useState<Date | undefined>();
+  const [isRecalculating, setIsRecalculating] = useState(false);
   const fetchedRef = useRef(false);
 
   const fetchOverview = async () => {
@@ -61,6 +65,26 @@ export default function AnalyticsPage() {
   const handleDateChange = (newStartDate?: Date, newEndDate?: Date) => {
     setStartDate(newStartDate);
     setEndDate(newEndDate);
+  };
+
+  const handleRecalculate = async () => {
+    setIsRecalculating(true);
+    try {
+      const result = await analyticsService.recalculateAll();
+
+      if (result.corrected > 0) {
+        toast.success(`Recalculated: ${result.corrected} of ${result.total} campaign(s) corrected`);
+      } else {
+        toast.success(`All ${result.total} campaign(s) are up to date`);
+      }
+
+      // Re-fetch overview with fresh data
+      await fetchOverview();
+    } catch {
+      toast.error("Failed to recalculate analytics");
+    } finally {
+      setIsRecalculating(false);
+    }
   };
 
   if (loading) {
@@ -114,11 +138,23 @@ export default function AnalyticsPage() {
         <h2 className="text-3xl font-bold tracking-tight">
           Analytics Overview
         </h2>
-        <DateRangeFilter
-          startDate={startDate}
-          endDate={endDate}
-          onDateChange={handleDateChange}
-        />
+        <div className="flex items-center gap-3">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleRecalculate}
+            disabled={isRecalculating}
+            className="gap-2"
+          >
+            <RefreshCw className={`h-4 w-4 ${isRecalculating ? "animate-spin" : ""}`} />
+            {isRecalculating ? "Recalculating..." : "Recalculate"}
+          </Button>
+          <DateRangeFilter
+            startDate={startDate}
+            endDate={endDate}
+            onDateChange={handleDateChange}
+          />
+        </div>
       </div>
 
       {/* Primary Metrics */}
