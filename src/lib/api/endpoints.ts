@@ -56,6 +56,8 @@
     CAMPAIGN_DETAIL: (id: string) => `/analytics/campaigns/${id}`,
     CAMPAIGN_TIMELINE: (id: string) => `/analytics/campaigns/${id}/timeline`,
     EVENTS: '/analytics/events',
+    RECALCULATE_ALL: '/analytics/recalculate-all',
+    RECALCULATE_CAMPAIGN: (id: string) => `/analytics/campaigns/${id}/recalculate`,
   },
   ADMINS: {
     BASE: '/admin/users',

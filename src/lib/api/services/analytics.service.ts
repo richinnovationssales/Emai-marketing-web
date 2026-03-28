@@ -8,6 +8,8 @@ import {
   CampaignTimelineResponse,
   RecentEventsResponse,
   AnalyticsEventsParams,
+  RecalculateAllResponse,
+  RecalculateCampaignResponse,
 } from '@/types/entities/analytics.types';
 
 export const analyticsService = {
@@ -48,6 +50,22 @@ export const analyticsService = {
    */
   getRecentEvents: async (params?: AnalyticsEventsParams): Promise<RecentEventsResponse> => {
     const response = await apiClient.get(API_ENDPOINTS.ANALYTICS.EVENTS, { params });
+    return response.data;
+  },
+
+  /**
+   * Recalculate analytics for all campaigns (client-scoped)
+   */
+  recalculateAll: async (): Promise<RecalculateAllResponse> => {
+    const response = await apiClient.post(API_ENDPOINTS.ANALYTICS.RECALCULATE_ALL);
+    return response.data;
+  },
+
+  /**
+   * Recalculate analytics for a single campaign
+   */
+  recalculateCampaign: async (campaignId: string): Promise<RecalculateCampaignResponse> => {
+    const response = await apiClient.post(API_ENDPOINTS.ANALYTICS.RECALCULATE_CAMPAIGN(campaignId));
     return response.data;
   },
 };

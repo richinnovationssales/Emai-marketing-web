@@ -137,3 +137,30 @@ export interface ClientAnalyticsResponse {
   planName?: string;
   remainingMessages?: number;
 }
+
+export interface RecalculateResult {
+  campaignId: string;
+  name: string;
+  status: string;
+  before: Partial<CampaignAnalyticsData>;
+  after: Partial<CampaignAnalyticsData>;
+}
+
+export interface RecalculateAllResponse {
+  success: boolean;
+  total: number;
+  updated: number;
+  failed: number;
+  corrected: number;
+  results: RecalculateResult[];
+}
+
+export interface RecalculateCampaignResponse {
+  success: boolean;
+  data: {
+    campaignId: string;
+    campaignName: string;
+    before: CampaignAnalyticsData;
+    after: CampaignAnalyticsData;
+  };
+}
