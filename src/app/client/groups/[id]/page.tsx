@@ -1,3 +1,5 @@
+
+
 'use client';
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
@@ -80,23 +82,42 @@ export default function GroupDetailPage() {
   }, [groupId, dispatch]);
 
   // Seed paginated contacts from the initial group fetch (7 contacts inline)
-  useEffect(() => {
-    if (group?.contactGroups && !hasInitializedFromGroup) {
-      const initialContacts = group.contactGroups.map((cg) => cg.contact);
-      setPaginatedContacts(initialContacts);
-      setHasInitializedFromGroup(true);
+  // useEffect(() => {
+  //   if (group?.contactGroups && !hasInitializedFromGroup) {
+  //     const initialContacts = group.contactGroups.map((cg) => cg.contact);
+  //     setPaginatedContacts(initialContacts);
+  //     setHasInitializedFromGroup(true);
 
-      // If the group has more contacts than what was returned inline, there are more pages
-      const totalCount = group._count?.contactGroups ?? initialContacts.length;
-      if (initialContacts.length < totalCount) {
-        // Set cursor to the last contact id so we can fetch more
-        const lastContact = initialContacts[initialContacts.length - 1];
-        setNextCursor(lastContact?.id ?? null);
-      } else {
-        setNextCursor(null);
-      }
+  //     // If the group has more contacts than what was returned inline, there are more pages
+  //     const totalCount = group?._count?.contactGroups ?? initialContacts.length;
+  //     if (initialContacts.length < totalCount) {
+  //       // Set cursor to the last contact id so we can fetch more
+  //       const lastContact = initialContacts[initialContacts.length - 1];
+  //       setNextCursor(lastContact?.id ?? null);
+  //     } else {
+  //       setNextCursor(null);
+  //     }
+  //   }
+  // }, [group, hasInitializedFromGroup]);
+
+  useEffect(() => {
+  const loadInitial = async () => {
+    try {
+      const response = await groupService.getGroupContacts(groupId, {
+        limit: PAGE_SIZE,
+      });
+
+      setPaginatedContacts(response.contacts);
+      setNextCursor(response.nextCursor);
+    } catch {
+      toast.error('Failed to load contacts');
     }
-  }, [group, hasInitializedFromGroup]);
+  };
+
+  if (groupId) {
+    loadInitial();
+  }
+}, [groupId]);
 
   // Fetch all contacts when the add dialog opens
   useEffect(() => {

@@ -106,9 +106,13 @@ export interface GroupWithContactsResponse {
     createdAt: string;
     updatedAt: string;
     contactGroups: ContactGroupWithDetails[];
+    _count?: {
+    contactGroups: number;
+  };
 }
 
 export interface GroupContactsPageResponse {
+  total: number;
   contacts: ContactWithCustomFields[];
   nextCursor: string | null;
 }
