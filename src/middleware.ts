@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-const publicRoutes = ['/', '/login', '/login/admin', '/login/client', '/register','/comming-soon']
+const publicRoutes = ['/', '/login', '/login/admin', '/login/client', '/register','/comming-soon','/forgot-password','/reset-password']
 
 const ADMIN_ROLES = ['ADMIN', 'SUPER_ADMIN']
 const CLIENT_ROLES = ['CLIENT_SUPER_ADMIN', 'CLIENT_ADMIN', 'CLIENT_USER']

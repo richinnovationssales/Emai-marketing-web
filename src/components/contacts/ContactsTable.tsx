@@ -169,6 +169,7 @@ export function ContactsTable({ data, onDelete, groupId }: ContactsTableProps) {
   };
 
   // Helper to extract nested/custom field values
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const getFieldValue = (contact: any, field: string) => {
     const val = contact[field] || contact.customFields?.[field];
     return typeof val === 'object' ? val?.value : val;

@@ -15,7 +15,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Search, Mail, UserMinus, ChevronDown, ChevronUp } from 'lucide-react';
 import CustomFieldRenderer from '@/components/contacts/CustomFieldRenderer';
-import { cn } from '@/lib/utils';
+
 
 interface ContactsInGroupTableProps {
   contacts: ContactWithCustomFields[];

@@ -55,7 +55,7 @@ export const groupService = {
   // Get contacts in a group with cursor-based pagination
   getGroupContacts: async (
     groupId: string,
-    params?: { limit?: number; cursor?: string }
+    params?: { limit?: number; cursor?: string ,search?: string }
   ): Promise<GroupContactsPageResponse> => {
     const response = await apiClient.get(`${API_ENDPOINTS.GROUPS}/${groupId}/contacts`, {
       params,

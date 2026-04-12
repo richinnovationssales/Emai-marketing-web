@@ -113,12 +113,12 @@ export default function ViewCampaignPage() {
           >
             Back to List
           </Button>
-          <Button
+          {/* <Button
             onClick={() => router.push(`/client/campaigns/${campaign.id}/edit`)}
           >
             <Edit2 className="mr-2 h-4 w-4" />
             Edit Campaign
-          </Button>
+          </Button> */}
 
           {campaign.status === CampaignStatus.DRAFT && (
             <Button onClick={handleSubmit} disabled={submitCampaign.isPending}>
