@@ -161,10 +161,10 @@ export function LoginPopover() {
             </div>
             <div>
               <h3 className="text-base font-bold leading-tight">Welcome Back</h3>
-              <p className="text-xs text-muted-foreground mt-0.5">Sign in to your account</p>
+              <p className="text-xs text-muted-foreground mt-0.5 hover:text-foreground">Sign in to your account</p>
             </div>
           </div>
-          <button
+          <button 
             onClick={handleClose}
             aria-label="Close sign in panel"
             className="w-8 h-8 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors shrink-0"
@@ -302,7 +302,7 @@ export function LoginPopover() {
         onClick={() => setOpen((prev) => !prev)}
         aria-expanded={open}
         aria-haspopup="dialog"
-        className="text-sm font-semibold text-white hover:text-primary transition-colors"
+        className="text-sm font-semibold text-white transition-colors hover:text-gray-500 cursor-pointer"
       >
         Sign in
       </button>

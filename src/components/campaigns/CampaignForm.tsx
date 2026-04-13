@@ -33,6 +33,19 @@ import { TemplateSelector } from "./TemplateSelector";
 import { RecurringScheduleForm } from "./RecurringScheduleForm";
 import { CampaignPreview } from "./CampaignPreview";
 import { RichTextEditor } from "./RichTextEditor";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+import {
+  GreetingFormat,
+  GREETING_LABELS,
+  injectGreetingIntoContent,
+} from "@/lib/utils/greetingUtils";
 
 import {
   useCreateCampaign,
@@ -62,8 +75,11 @@ const campaignSchema = z.object({
   recurringEndDate: z.string().optional(),
   customCronExpression: z.string().optional(),
   sendImmediately: z.boolean().default(true),
+  greetingFormat: z
+    .enum(["NONE", "FIRST_NAME", "LAST_NAME", "FULL_NAME"])
+    .default("NONE"),
 });
-
+greetingFormat: "NONE";
 type CampaignFormValues = z.infer<typeof campaignSchema>;
 
 interface CampaignFormProps {
@@ -102,7 +118,9 @@ export function CampaignForm({
   const [showPreview, setShowPreview] = useState(false);
 
   // Template state — stores raw HTML for preview & merge on submit
-  const [selectedTemplateId, setSelectedTemplateId] = useState<string | undefined>();
+  const [selectedTemplateId, setSelectedTemplateId] = useState<
+    string | undefined
+  >();
   const [selectedTemplateHtml, setSelectedTemplateHtml] = useState<string>("");
 
   // Uploaded HTML file state
@@ -127,6 +145,7 @@ export function CampaignForm({
       recurringTimezone: "Asia/Kolkata",
       recurringDaysOfWeek: [],
       sendImmediately: true,
+      greetingFormat: "NONE",
       ...initialData,
     },
   });
@@ -137,8 +156,17 @@ export function CampaignForm({
   const isRecurring = watch("isRecurring");
   const recurringFrequency = watch("recurringFrequency");
 
+  const greetingFormat = watch("greetingFormat");
+
   // Which template is active (dropdown and upload are mutually exclusive)
   const activeTemplateHtml = selectedTemplateHtml || uploadedTemplateHtml;
+
+  const handleGreetingChange = (format: GreetingFormat) => {
+    setValue("greetingFormat", format);
+    const currentContent = form.getValues("content");
+    const updated = injectGreetingIntoContent(currentContent, format);
+    setValue("content", updated, { shouldValidate: true });
+  };
 
   /* ---------------- Template Selection (Dropdown) ---------------- */
 
@@ -192,7 +220,9 @@ export function CampaignForm({
   /* ---------------- Schedule Field Updates ---------------- */
 
   const handleScheduleChange = (field: string, value: any) => {
-    setValue(field as keyof CampaignFormValues, value, { shouldValidate: true });
+    setValue(field as keyof CampaignFormValues, value, {
+      shouldValidate: true,
+    });
   };
 
   /* ---------------- Submit ---------------- */
@@ -214,6 +244,7 @@ export function CampaignForm({
       subject: data.subject,
       name: data.name,
       groupIds: data.groupIds,
+      greetingFormat: data.greetingFormat,
       isRecurring: data.isRecurring,
       ...(data.isRecurring
         ? {
@@ -244,7 +275,7 @@ export function CampaignForm({
     if (mode === "edit" && campaignId) {
       updateCampaign.mutate(
         { id: campaignId, data: payload },
-        { onSuccess: () => router.push("/client/campaigns") }
+        { onSuccess: () => router.push("/client/campaigns") },
       );
     } else {
       createCampaign.mutate(payload, {
@@ -297,6 +328,37 @@ export function CampaignForm({
                     )}
                   />
 
+                  {/* Between subject FormField and content FormField */}
+                  <div className="space-y-2">
+                    <Label>Greeting Personalization</Label>
+                    <Select
+                      value={greetingFormat}
+                      onValueChange={(val) =>
+                        handleGreetingChange(val as GreetingFormat)
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select greeting format" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {(
+                          Object.entries(GREETING_LABELS) as [
+                            GreetingFormat,
+                            string,
+                          ][]
+                        ).map(([value, label]) => (
+                          <SelectItem key={value} value={value}>
+                            {label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground">
+                      Inserts a personalized greeting at the top of your email
+                      body. Placeholders are replaced per recipient on send.
+                    </p>
+                  </div>
+
                   <FormField
                     control={form.control}
                     name="content"
@@ -334,7 +396,8 @@ export function CampaignForm({
                           setSelectedTemplateHtml("");
                           setUploadedFileName("");
                           setUploadedTemplateHtml("");
-                          if (fileInputRef.current) fileInputRef.current.value = "";
+                          if (fileInputRef.current)
+                            fileInputRef.current.value = "";
                         }}
                       >
                         <X className="h-4 w-4 mr-1" />
@@ -342,7 +405,8 @@ export function CampaignForm({
                       </Button>
                     </div>
                     <CardDescription>
-                      Your body text above will be combined with this template on send.
+                      Your body text above will be combined with this template
+                      on send.
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
@@ -396,7 +460,9 @@ export function CampaignForm({
                     {uploadedFileName ? (
                       <div className="flex items-center gap-2 rounded-md border border-dashed px-3 py-2 text-sm text-muted-foreground">
                         <FileText className="h-4 w-4 shrink-0 text-primary" />
-                        <span className="flex-1 truncate">{uploadedFileName}</span>
+                        <span className="flex-1 truncate">
+                          {uploadedFileName}
+                        </span>
                         <button
                           type="button"
                           onClick={handleClearUpload}
@@ -533,8 +599,8 @@ export function CampaignForm({
                         {isSubmitting
                           ? "Saving..."
                           : mode === "create"
-                          ? "Create"
-                          : "Save"}
+                            ? "Create"
+                            : "Save"}
                       </Button>
                     </div>
                   </div>
@@ -547,7 +613,11 @@ export function CampaignForm({
 
       {showPreview && (
         <CampaignPreview
-          html={activeTemplateHtml ? mergeBodyWithTemplate(content, activeTemplateHtml) : content}
+          html={
+            activeTemplateHtml
+              ? mergeBodyWithTemplate(content, activeTemplateHtml)
+              : content
+          }
           subject={subject}
           onClose={() => setShowPreview(false)}
         />
