@@ -24,6 +24,8 @@ import {
 import { ClientsTable } from '@/components/admin/ClientsTable';
 import { ClientForm } from '@/components/admin/ClientForm';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
     Dialog,
@@ -31,6 +33,7 @@ import {
     DialogDescription,
     DialogHeader,
     DialogTitle,
+    DialogFooter,
 } from '@/components/ui/dialog';
 import {
     AlertDialog,
@@ -42,10 +45,11 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Plus } from 'lucide-react';
+import { Plus, Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner';
 import { ClientWithStats, CreateClientDTO } from '@/types/entities/client.types';
 import { getErrorMessage } from '@/lib/utils/error';
+import { clientService } from '@/lib/api/services/client.service';
 
 export default function AdminClientsPage() {
     const dispatch = useAppDispatch();
@@ -59,6 +63,12 @@ export default function AdminClientsPage() {
     const [createDialogOpen, setCreateDialogOpen] = useState(false);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [clientToDelete, setClientToDelete] = useState<string | null>(null);
+
+    const [resetPasswordDialogOpen, setResetPasswordDialogOpen] = useState(false);
+    const [clientToResetPassword, setClientToResetPassword] = useState<string | null>(null);
+    const [newPassword, setNewPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
+    const [resetPasswordLoading, setResetPasswordLoading] = useState(false);
 
     useEffect(() => {
         dispatch(fetchClients());
@@ -142,6 +152,29 @@ export default function AdminClientsPage() {
         setDeleteDialogOpen(true);
     };
 
+    const handleResetPassword = (id: string) => {
+        setClientToResetPassword(id);
+        setNewPassword('');
+        setShowPassword(false);
+        setResetPasswordDialogOpen(true);
+    };
+
+    const confirmResetPassword = async () => {
+        if (!clientToResetPassword || !newPassword) return;
+        setResetPasswordLoading(true);
+        try {
+            await clientService.resetPassword(clientToResetPassword, newPassword);
+            toast.success('Password reset successfully');
+            setResetPasswordDialogOpen(false);
+            setClientToResetPassword(null);
+            setNewPassword('');
+        } catch (err: any) {
+            toast.error(getErrorMessage(err, 'Failed to reset password'));
+        } finally {
+            setResetPasswordLoading(false);
+        }
+    };
+
     const confirmDeleteClient = async () => {
         if (!clientToDelete) return;
 
@@ -190,6 +223,7 @@ export default function AdminClientsPage() {
                         onActivate={handleActivateClient}
                         onDeactivate={handleDeactivateClient}
                         onDelete={handleDeleteClient}
+                        onResetPassword={handleResetPassword}
                     />
                 </TabsContent>
                 <TabsContent value="pending" className="mt-6">
@@ -201,6 +235,7 @@ export default function AdminClientsPage() {
                         onApprove={handleApproveClient}
                         onReject={handleRejectClient}
                         onDelete={handleDeleteClient}
+                        onResetPassword={handleResetPassword}
                     />
                 </TabsContent>
             </Tabs>
@@ -243,6 +278,58 @@ export default function AdminClientsPage() {
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
+
+            {/* Reset Password Dialog */}
+            <Dialog
+                open={resetPasswordDialogOpen}
+                onOpenChange={(open) => {
+                    if (!open) {
+                        setNewPassword('');
+                        setShowPassword(false);
+                    }
+                    setResetPasswordDialogOpen(open);
+                }}
+            >
+                <DialogContent className="max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>Reset Client Password</DialogTitle>
+                        <DialogDescription>
+                            This will reset the password for the client&apos;s primary admin account (CLIENT_SUPER_ADMIN).
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-2 py-2">
+                        <Label htmlFor="new-password">New Password</Label>
+                        <div className="relative">
+                            <Input
+                                id="new-password"
+                                type={showPassword ? 'text' : 'password'}
+                                placeholder="Enter new password (min. 8 characters)"
+                                value={newPassword}
+                                onChange={(e) => setNewPassword(e.target.value)}
+                                className="pr-10"
+                            />
+                            <button
+                                type="button"
+                                className="absolute inset-y-0 right-2 flex items-center text-gray-400 hover:text-gray-600"
+                                onClick={() => setShowPassword((v) => !v)}
+                            >
+                                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                            </button>
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setResetPasswordDialogOpen(false)}>
+                            Cancel
+                        </Button>
+                        <Button
+                            onClick={confirmResetPassword}
+                            disabled={resetPasswordLoading || newPassword.length < 8}
+                        >
+                            {resetPasswordLoading ? 'Resetting...' : 'Reset Password'}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

@@ -9,7 +9,7 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import { MoreHorizontal, Eye, Edit, CheckCircle, XCircle, Power, PowerOff, Trash2 } from 'lucide-react';
+import { MoreHorizontal, Eye, Edit, CheckCircle, XCircle, Power, PowerOff, Trash2, KeyRound } from 'lucide-react';
 import { ClientWithStats } from '@/types/entities/client.types';
 
 interface ClientActionsMenuProps {
@@ -21,6 +21,7 @@ interface ClientActionsMenuProps {
     onActivate?: (id: string) => void;
     onDeactivate?: (id: string) => void;
     onDelete: (id: string) => void;
+    onResetPassword: (id: string) => void;
 }
 
 export function ClientActionsMenu({
@@ -32,6 +33,7 @@ export function ClientActionsMenu({
     onActivate,
     onDeactivate,
     onDelete,
+    onResetPassword,
 }: ClientActionsMenuProps) {
     return (
         <DropdownMenu>
@@ -89,7 +91,12 @@ export function ClientActionsMenu({
                 )}
                 
                 <DropdownMenuSeparator />
-                <DropdownMenuItem 
+                <DropdownMenuItem onClick={() => onResetPassword(client.id)}>
+                    <KeyRound className="mr-2 h-4 w-4 text-blue-600" />
+                    Reset Password
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
                     onClick={() => onDelete(client.id)}
                     className="text-red-600 focus:text-red-600"
                 >

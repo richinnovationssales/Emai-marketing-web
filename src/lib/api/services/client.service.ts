@@ -115,4 +115,9 @@ export const clientService = {
     );
     return data.data;
   },
+
+  // Reset client's super admin password (admin use)
+  resetPassword: async (clientId: string, newPassword: string): Promise<void> => {
+    await apiClient.patch(API_ENDPOINTS.CLIENTS.RESET_PASSWORD(clientId), { newPassword });
+  },
 };

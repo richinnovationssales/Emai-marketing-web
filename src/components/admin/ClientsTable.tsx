@@ -26,6 +26,7 @@ interface ClientsTableProps {
     onActivate?: (id: string) => void;
     onDeactivate?: (id: string) => void;
     onDelete: (id: string) => void;
+    onResetPassword: (id: string) => void;
 }
 
 export function ClientsTable({
@@ -38,6 +39,7 @@ export function ClientsTable({
     onActivate,
     onDeactivate,
     onDelete,
+    onResetPassword,
 }: ClientsTableProps) {
     const [searchTerm, setSearchTerm] = useState('');
 
@@ -125,6 +127,7 @@ export function ClientsTable({
                                             onActivate={onActivate}
                                             onDeactivate={onDeactivate}
                                             onDelete={onDelete}
+                                            onResetPassword={onResetPassword}
                                         />
                                     </TableCell>
                                 </TableRow>

@@ -25,6 +25,7 @@
     REACTIVATE: (id: string) => `/admin/clients/${id}/reactivate`,
     ANALYTICS: (id: string) => `/admin/clients/${id}/analytics`,
     ONBOARD: '/admin/clients/onboard',
+    RESET_PASSWORD: (clientId: string) => `/admin/clients/${clientId}/reset-password`,
   },
   GROUPS: '/groups',
   CONTACT_GROUPS: '/contact-groups',

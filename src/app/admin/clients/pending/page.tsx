@@ -114,9 +114,12 @@ export default function AdminPendingClientsPage() {
                 onView={handleViewClient}
                 onApprove={handleApproveClient}
                 onReject={handleRejectClient}
-                onDelete={handleDeleteClient} onEdit={function (client: ClientWithStats): void {
+                onDelete={handleDeleteClient}
+                onEdit={function (client: ClientWithStats): void {
                     throw new Error('Function not implemented.');
-                } }            />
+                }}
+                onResetPassword={() => {}}
+            />
 
             {/* Delete Confirmation Dialog */}
             <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
