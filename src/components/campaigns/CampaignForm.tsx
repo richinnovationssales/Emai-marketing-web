@@ -51,6 +51,7 @@ import {
   useCreateCampaign,
   useUpdateCampaign,
 } from "@/lib/api/hooks/useCampaigns";
+import { useNameFields } from "@/lib/api/hooks/useCustomFields";
 import { Template } from "@/types/entities/template.types";
 import { RecurringFrequency } from "@/types/entities/campaign.types";
 
@@ -79,7 +80,6 @@ const campaignSchema = z.object({
     .enum(["NONE", "FIRST_NAME", "LAST_NAME", "FULL_NAME"])
     .default("NONE"),
 });
-greetingFormat: "NONE";
 type CampaignFormValues = z.infer<typeof campaignSchema>;
 
 interface CampaignFormProps {
@@ -127,6 +127,8 @@ export function CampaignForm({
   const [uploadedFileName, setUploadedFileName] = useState<string>("");
   const [uploadedTemplateHtml, setUploadedTemplateHtml] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const { data: nameFields = [], isSuccess: nameFieldsReady } = useNameFields();
 
   const createCampaign = useCreateCampaign();
   const updateCampaign = useUpdateCampaign();
@@ -367,8 +369,10 @@ export function CampaignForm({
                         <FormLabel>Email Body</FormLabel>
                         <FormControl>
                           <RichTextEditor
+                            key={nameFieldsReady ? 'ready' : 'init'}
                             value={field.value}
                             onChange={field.onChange}
+                            nameFields={nameFields}
                           />
                         </FormControl>
                         <FormMessage />

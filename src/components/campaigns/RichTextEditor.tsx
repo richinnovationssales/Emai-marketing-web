@@ -25,13 +25,16 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { useRef } from "react";
+import { createFieldSuggestionExtension } from "./FieldSuggestionExtension";
+import { NameField } from "./FieldSuggestionList";
 
 interface RichTextEditorProps {
   value: string;
   onChange: (value: string) => void;
+  nameFields?: NameField[];
 }
 
-export function RichTextEditor({ value, onChange }: RichTextEditorProps) {
+export function RichTextEditor({ value, onChange, nameFields }: RichTextEditorProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const editor = useEditor({
@@ -45,8 +48,9 @@ export function RichTextEditor({ value, onChange }: RichTextEditorProps) {
         allowBase64: true,
       }),
       Placeholder.configure({
-        placeholder: "Write your email content here...",
+        placeholder: 'Write your email content here… type { to insert a personalization field',
       }),
+      ...(nameFields?.length ? [createFieldSuggestionExtension(nameFields)] : []),
     ],
     content: value,
     immediatelyRender: false,
@@ -153,20 +157,42 @@ export function RichTextEditor({ value, onChange }: RichTextEditorProps) {
         <Separator orientation="vertical" className="mx-1 h-6" />
 
         {/* Personalization Tags */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="sm" className="h-8 gap-2">
-              <User className="h-4 w-4" />
-              <span>Tags</span>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent>
-            <DropdownMenuItem onClick={() => addTag("first_name")}>First Name</DropdownMenuItem>
-            <DropdownMenuItem onClick={() => addTag("last_name")}>Last Name</DropdownMenuItem>
-            <DropdownMenuItem onClick={() => addTag("email")}>Email Address</DropdownMenuItem>
-            <DropdownMenuItem onClick={() => addTag("company")}>Company</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        {nameFields && nameFields.length > 0 ? (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm" className="h-8 gap-2">
+                <User className="h-4 w-4" />
+                <span>Fields</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              {nameFields.map((field) => (
+                <DropdownMenuItem key={field.id} onClick={() => addTag(field.fieldKey)}>
+                  <span>{field.name}</span>
+                  <code className="ml-auto text-[10px] text-muted-foreground bg-muted px-1 rounded">
+                    {`{{${field.fieldKey}}}`}
+                  </code>
+                </DropdownMenuItem>
+              ))}
+              <p className="px-2 py-1 text-[10px] text-muted-foreground">Or type {"{"} in the editor</p>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm" className="h-8 gap-2">
+                <User className="h-4 w-4" />
+                <span>Tags</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem onClick={() => addTag("first_name")}>First Name</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => addTag("last_name")}>Last Name</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => addTag("email")}>Email Address</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => addTag("company")}>Company</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
 
         <div className="ml-auto flex gap-1">
           <Button 

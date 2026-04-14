@@ -26,6 +26,8 @@
     ANALYTICS: (id: string) => `/admin/clients/${id}/analytics`,
     ONBOARD: '/admin/clients/onboard',
     RESET_PASSWORD: (clientId: string) => `/admin/clients/${clientId}/reset-password`,
+    CUSTOM_FIELDS: (clientId: string) => `/admin/clients/${clientId}/custom-fields`,
+    SET_NAME_FIELD: (clientId: string, fieldId: string) => `/admin/clients/${clientId}/custom-fields/${fieldId}/set-name-field`,
   },
   GROUPS: '/groups',
   CONTACT_GROUPS: '/contact-groups',

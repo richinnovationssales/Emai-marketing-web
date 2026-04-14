@@ -283,6 +283,7 @@ export default function AdminClientsPage() {
             <Dialog
                 open={resetPasswordDialogOpen}
                 onOpenChange={(open) => {
+                    if (resetPasswordLoading) return;
                     if (!open) {
                         setNewPassword('');
                         setShowPassword(false);
@@ -318,7 +319,7 @@ export default function AdminClientsPage() {
                         </div>
                     </div>
                     <DialogFooter>
-                        <Button variant="outline" onClick={() => setResetPasswordDialogOpen(false)}>
+                        <Button variant="outline" disabled={resetPasswordLoading} onClick={() => setResetPasswordDialogOpen(false)}>
                             Cancel
                         </Button>
                         <Button
