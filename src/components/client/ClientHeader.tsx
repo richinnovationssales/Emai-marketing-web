@@ -78,15 +78,14 @@ export function ClientHeader({
           <ModeToggle />
 
           {/* Notifications */}
-          <Button
+          {/* <Button
             variant="ghost"
             size="icon"
             className="relative text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
           >
             <Bell className="h-5 w-5" />
-            {/* Notification Badge */}
             <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-emerald-500 rounded-full" />
-          </Button>
+          </Button> */}
 
           {/* User Menu */}
           <DropdownMenu>

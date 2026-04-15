@@ -331,7 +331,7 @@ export function CampaignForm({
                   />
 
                   {/* Between subject FormField and content FormField */}
-                  <div className="space-y-2">
+                  {/* <div className="space-y-2">
                     <Label>Greeting Personalization</Label>
                     <Select
                       value={greetingFormat}
@@ -359,7 +359,7 @@ export function CampaignForm({
                       Inserts a personalized greeting at the top of your email
                       body. Placeholders are replaced per recipient on send.
                     </p>
-                  </div>
+                  </div> */}
 
                   <FormField
                     control={form.control}
