@@ -42,6 +42,7 @@ export interface CustomField {
     helpText: string | null;
     displayOrder: number;
     isActive: boolean;
+    isNameField: boolean;
     createdAt: string;
     updatedAt: string;
 }

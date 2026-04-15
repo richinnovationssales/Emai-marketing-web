@@ -8,6 +8,7 @@ import {
   ClientDetails,
   ClientAnalytics,
   OnboardClientDTO,
+  CustomField,
 } from "@/types/entities/client.types";
 import { ApiResponse } from "@/types/api/response.types";
 
@@ -112,6 +113,28 @@ export const clientService = {
     const { data } = await apiClient.post<ApiResponse<Client>>(
       API_ENDPOINTS.CLIENTS.ONBOARD,
       onboardData
+    );
+    return data.data;
+  },
+
+  // Reset client's super admin password (admin use)
+  resetPassword: async (clientId: string, newPassword: string): Promise<void> => {
+    await apiClient.patch(API_ENDPOINTS.CLIENTS.RESET_PASSWORD(clientId), { newPassword });
+  },
+
+  // Get all custom fields for a client (admin use, includes inactive)
+  getCustomFields: async (clientId: string): Promise<CustomField[]> => {
+    const { data } = await apiClient.get<ApiResponse<CustomField[]>>(
+      API_ENDPOINTS.CLIENTS.CUSTOM_FIELDS(clientId)
+    );
+    return data.data;
+  },
+
+  // Set or clear isNameField on a custom field (admin use)
+  setNameField: async (clientId: string, fieldId: string, isNameField: boolean): Promise<CustomField> => {
+    const { data } = await apiClient.patch<ApiResponse<CustomField>>(
+      API_ENDPOINTS.CLIENTS.SET_NAME_FIELD(clientId, fieldId),
+      { isNameField }
     );
     return data.data;
   },

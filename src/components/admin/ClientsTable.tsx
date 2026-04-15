@@ -13,7 +13,7 @@ import { Input } from '@/components/ui/input';
 import { ClientWithStats } from '@/types/entities/client.types';
 import { ClientStatusBadge } from './ClientStatusBadge';
 import { ClientActionsMenu } from './ClientActionsMenu';
-import { Search } from 'lucide-react';
+import { Search, Loader2 } from 'lucide-react';
 import { FormattedDate } from '@/components/ui/formatted-date';
 
 interface ClientsTableProps {
@@ -26,6 +26,7 @@ interface ClientsTableProps {
     onActivate?: (id: string) => void;
     onDeactivate?: (id: string) => void;
     onDelete: (id: string) => void;
+    onResetPassword: (id: string) => void;
 }
 
 export function ClientsTable({
@@ -38,6 +39,7 @@ export function ClientsTable({
     onActivate,
     onDeactivate,
     onDelete,
+    onResetPassword,
 }: ClientsTableProps) {
     const [searchTerm, setSearchTerm] = useState('');
 
@@ -46,16 +48,23 @@ export function ClientsTable({
         client?.plan?.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    if (loading ) {
+    // Initial load with no data — show placeholder
+    if (loading && !clients?.length) {
         return (
-            <div className="flex items-center justify-center py-8">
-                <p className="text-gray-500">Loading clients...</p>
+            <div className="flex items-center justify-center py-8 gap-2 text-gray-500">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <p>Loading clients...</p>
             </div>
         );
     }
 
     return (
-        <div className="space-y-4">
+        <div className="space-y-4 relative">
+            {loading && (
+                <div className="absolute inset-0 bg-background/50 z-10 flex items-center justify-center rounded-md pointer-events-none">
+                    <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                </div>
+            )}
             <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <Input
@@ -83,7 +92,7 @@ export function ClientsTable({
                     <TableBody>
                         {filteredClients?.length === 0 ? (
                             <TableRow>
-                                <TableCell colSpan={8} className="text-center py-8 text-gray-500">
+                                <TableCell colSpan={5} className="text-center py-8 text-gray-500">
                                     {searchTerm ? 'No clients found matching your search.' : 'No clients yet.'}
                                 </TableCell>
                             </TableRow>
@@ -125,6 +134,7 @@ export function ClientsTable({
                                             onActivate={onActivate}
                                             onDeactivate={onDeactivate}
                                             onDelete={onDelete}
+                                            onResetPassword={onResetPassword}
                                         />
                                     </TableCell>
                                 </TableRow>

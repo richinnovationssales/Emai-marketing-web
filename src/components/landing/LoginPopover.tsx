@@ -302,7 +302,7 @@ export function LoginPopover() {
         onClick={() => setOpen((prev) => !prev)}
         aria-expanded={open}
         aria-haspopup="dialog"
-        className="text-sm font-semibold text-white transition-colors hover:text-gray-500 cursor-pointer"
+        className="text-sm font-semibold text-white transition-colors  cursor-pointer"
       >
         Sign in
       </button>

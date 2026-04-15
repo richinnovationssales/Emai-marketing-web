@@ -1,10 +1,10 @@
 'use client';
 
 import React, { useState } from 'react';
-import { ClientDetails } from '@/types/entities/client.types';
+import { ClientDetails, CustomField } from '@/types/entities/client.types';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import {  
+import {
     Table,
     TableBody,
     TableCell,
@@ -14,9 +14,11 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ExternalLink } from 'lucide-react';
+import { ExternalLink, Star, StarOff, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { FieldTypeBadge } from './FieldTypeBadge';
+import { clientService } from '@/lib/api/services/client.service';
+import { toast } from 'sonner';
 
 interface ClientTabsSectionProps {
     client: ClientDetails;
@@ -24,12 +26,40 @@ interface ClientTabsSectionProps {
 
 export function ClientTabsSection({ client }: ClientTabsSectionProps) {
     const [activeTab, setActiveTab] = useState('users');
+    const [customFields, setCustomFields] = useState<CustomField[]>(client.customFields);
+    const [togglingFieldId, setTogglingFieldId] = useState<string | null>(null);
+
+    // Sync local state when the client prop changes (e.g. Redux re-fetch)
+    React.useEffect(() => {
+        setCustomFields(client.customFields);
+    }, [client.id, client.customFields]);
 
     const formatDate = (dateString: string) => {
         try {
             return format(new Date(dateString), 'MMM dd, yyyy');
         } catch {
             return dateString;
+        }
+    };
+
+    const handleToggleNameField = async (field: CustomField) => {
+        const newValue = !field.isNameField;
+        setTogglingFieldId(field.id);
+        try {
+            await clientService.setNameField(client.id, field.id, newValue);
+            // Update local state: reflect mutual exclusivity
+            setCustomFields((prev) =>
+                prev.map((f) => f.id === field.id ? { ...f, isNameField: newValue } : f)
+            );
+            toast.success(
+                newValue
+                    ? `"${field.name}" is now the Name Field`
+                    : `"${field.name}" is no longer the Name Field`
+            );
+        } catch {
+            toast.error('Failed to update Name Field');
+        } finally {
+            setTogglingFieldId(null);
         }
     };
 
@@ -198,7 +228,8 @@ export function ClientTabsSection({ client }: ClientTabsSectionProps) {
                     <CardHeader>
                         <CardTitle>Custom Fields</CardTitle>
                         <CardDescription>
-                            All {client.customFieldsCount} custom fields configured for this client
+                            All {client.customFieldsCount} custom fields configured for this client.
+                            Mark one as <span className="font-semibold">Name Field</span> to use it as the contact&apos;s display name.
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
@@ -210,19 +241,27 @@ export function ClientTabsSection({ client }: ClientTabsSectionProps) {
                                     <TableHead>Type</TableHead>
                                     <TableHead>Required</TableHead>
                                     <TableHead>Active</TableHead>
+                                    <TableHead>Name Field</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {client.customFields.length === 0 ? (
+                                {customFields.length === 0 ? (
                                     <TableRow>
-                                        <TableCell colSpan={5} className="text-center text-muted-foreground">
+                                        <TableCell colSpan={6} className="text-center text-muted-foreground">
                                             No custom fields found
                                         </TableCell>
                                     </TableRow>
                                 ) : (
-                                    client.customFields.map((field) => (
+                                    customFields.map((field) => (
                                         <TableRow key={field.id}>
-                                            <TableCell className="font-medium">{field.name}</TableCell>
+                                            <TableCell className="font-medium">
+                                                <span className="flex items-center gap-1.5">
+                                                    {field.isNameField && (
+                                                        <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400 shrink-0" />
+                                                    )}
+                                                    {field.name}
+                                                </span>
+                                            </TableCell>
                                             <TableCell>
                                                 <code className="text-xs bg-muted px-2 py-1 rounded">
                                                     {field.fieldKey}
@@ -242,6 +281,29 @@ export function ClientTabsSection({ client }: ClientTabsSectionProps) {
                                                 <Badge variant={field.isActive ? 'default' : 'secondary'}>
                                                     {field.isActive ? 'Active' : 'Inactive'}
                                                 </Badge>
+                                            </TableCell>
+                                            <TableCell>
+                                                <Button
+                                                    variant={field.isNameField ? 'default' : 'outline'}
+                                                    size="sm"
+                                                    className="h-7 gap-1.5"
+                                                    disabled={togglingFieldId !== null}
+                                                    onClick={() => handleToggleNameField(field)}
+                                                >
+                                                    {togglingFieldId === field.id ? (
+                                                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                                    ) : field.isNameField ? (
+                                                        <>
+                                                            <StarOff className="h-3.5 w-3.5" />
+                                                            Remove
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <Star className="h-3.5 w-3.5" />
+                                                            Set as Name
+                                                        </>
+                                                    )}
+                                                </Button>
                                             </TableCell>
                                         </TableRow>
                                     ))
