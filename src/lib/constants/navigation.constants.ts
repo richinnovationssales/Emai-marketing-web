@@ -10,7 +10,8 @@ import {
     UserCog,
     LucideIcon,
     Code2Icon,
-    Code2
+    Code2,
+    PenSquare,
 } from 'lucide-react';
 import { ROUTES } from './routes';
 import { AdminRole } from '@/types/enums/admin-role.enum';
@@ -49,6 +50,11 @@ export const SUPER_ADMIN_NAV_ITEMS: NavigationItem[] = [
         href: ROUTES.ADMIN.ACTIVITY_LOGS,
         icon: FileText,
     },
+    {
+        title: 'Template Editor',
+        href: ROUTES.ADMIN.TEMPLATE_EDITOR,
+        icon: PenSquare,
+    },
 ];
 
 // Regular Admin Navigation
@@ -67,6 +73,11 @@ export const ADMIN_NAV_ITEMS: NavigationItem[] = [
         title: 'Plans',
         href: ROUTES.ADMIN.PLANS,
         icon: Target,
+    },
+    {
+        title: 'Template Editor',
+        href: ROUTES.ADMIN.TEMPLATE_EDITOR,
+        icon: PenSquare,
     },
 ];
 

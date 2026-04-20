@@ -25,6 +25,7 @@ export const ROUTES = {
         PLANS: '/admin/plans',
         PLANS_CREATE: '/admin/plans/create',
         PLAN_DETAILS: (id: string) => `/admin/plans/${id}`,
+        TEMPLATE_EDITOR: '/admin/template-editor',
     },
 
     // Client routes
