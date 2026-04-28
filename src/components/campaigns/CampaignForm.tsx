@@ -54,6 +54,7 @@ import {
 import { useNameFields } from "@/lib/api/hooks/useCustomFields";
 import { Template } from "@/types/entities/template.types";
 import { RecurringFrequency } from "@/types/entities/campaign.types";
+import { stripDesignMarker } from "@/components/templates/TemplateEditor";
 
 /* ---------------- Schema ---------------- */
 
@@ -175,7 +176,7 @@ export function CampaignForm({
   const handleTemplateSelect = (template: Template | null) => {
     if (template) {
       setSelectedTemplateId(template.id);
-      setSelectedTemplateHtml(template.content);
+      setSelectedTemplateHtml(stripDesignMarker(template.content));
 
       // Clear uploaded file when dropdown template is chosen
       setUploadedFileName("");
@@ -208,7 +209,7 @@ export function CampaignForm({
       setSelectedTemplateHtml("");
 
       setUploadedFileName(file.name);
-      setUploadedTemplateHtml(html);
+      setUploadedTemplateHtml(stripDesignMarker(html));
     };
     reader.readAsText(file);
   };
