@@ -381,10 +381,6 @@ export default function AdminTemplateEditorPage() {
         <div className="flex items-center gap-2">
           <LayoutTemplate className="h-5 w-5 text-primary" />
           <span className="font-semibold text-sm hidden sm:inline">Template Editor</span>
-          <Badge variant="secondary" className="text-xs hidden sm:flex">
-            <Sparkles className="h-3 w-3 mr-1" />
-            Unlayer
-          </Badge>
           {isReady && (
             <Badge variant="outline" className="text-xs text-green-600 border-green-300 hidden md:flex">
               Ready
@@ -491,11 +487,10 @@ export default function AdminTemplateEditorPage() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Sparkles className="h-5 w-5 text-primary" />
-              Unlayer Editor — Available Features
+              Editor — Available Features
             </DialogTitle>
             <p className="text-sm text-muted-foreground pt-1">
-              All features listed below are available on the <strong>free plan</strong> with no account required.
-              Design your email, export the HTML, and use it directly in campaigns.
+              Design your email visually, export the HTML, and use it directly in campaigns.
             </p>
           </DialogHeader>
 

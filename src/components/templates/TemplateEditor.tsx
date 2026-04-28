@@ -309,9 +309,6 @@ export default function TemplateEditor({
           <span className="hidden sm:inline text-sm font-semibold whitespace-nowrap">
             Template Editor
           </span>
-          <Badge variant="secondary" className="hidden sm:flex text-xs">
-            <Sparkles className="h-3 w-3 mr-1" /> Unlayer
-          </Badge>
           {isReady && (
             <Badge
               variant="outline"
