@@ -13,22 +13,28 @@ export const domainKeys = {
 };
 
 /**
- * Fetch current domain configuration
+ * Fetch current domain configuration.
+ * `refetchOnMount: 'always'` overrides the global default of `false` so
+ * config/history reflect mutations performed on a different page. Without
+ * it, the unmounted page misses the invalidate event and React Query
+ * serves stale cache on remount.
  */
 export const useDomainConfig = () => {
   return useQuery({
     queryKey: domainKeys.config(),
     queryFn: () => domainService.get(),
+    refetchOnMount: 'always',
   });
 };
 
 /**
- * Fetch domain change history
+ * Fetch domain change history. Same reasoning as useDomainConfig above.
  */
 export const useDomainHistory = () => {
   return useQuery({
     queryKey: domainKeys.history(),
     queryFn: () => domainService.getHistory(),
+    refetchOnMount: 'always',
   });
 };
 

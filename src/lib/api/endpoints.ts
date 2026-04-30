@@ -46,6 +46,13 @@
     CLIENTS: (id: string) => `/admin/plans/${id}/clients`,
   },
   CUSTOM_FIELDS: '/custom-fields',
+  GREETINGS: {
+    BASE: '/greetings',
+  },
+  ADMIN_GREETINGS: {
+    BASE: '/admin/greetings',
+    BY_ID: (id: string) => `/admin/greetings/${id}`,
+  },
   DASHBOARD: {
     ADMIN: '/dashboard/admin',
     CLIENT: '/dashboard/client',

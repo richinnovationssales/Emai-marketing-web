@@ -14,20 +14,27 @@ export const templateKeys = {
   detail: (id: string) => [...templateKeys.details(), id] as const,
 };
 
-// Fetch all templates
+// Fetch all templates.
+// `refetchOnMount: 'always'` overrides the global default of `false` so the
+// list refreshes after returning from create/edit/delete flows. Without
+// this, invalidateQueries only marks the cache stale — and since the list
+// page isn't mounted at the time, no refetch is queued; on remount React
+// Query happily serves the stale cache.
 export const useTemplates = (filters?: TemplateFilters) => {
   return useQuery({
     queryKey: templateKeys.list(filters),
     queryFn: () => templateService.getAll(filters),
+    refetchOnMount: 'always',
   });
 };
 
-// Fetch single template by ID
+// Fetch single template by ID. Same reasoning as useTemplates above.
 export const useTemplate = (id: string) => {
   return useQuery({
     queryKey: templateKeys.detail(id),
     queryFn: () => templateService.getById(id),
     enabled: !!id,
+    refetchOnMount: 'always',
   });
 };
 

@@ -12,6 +12,7 @@ import {
     Code2Icon,
     Code2,
     PenSquare,
+    MessageSquare,
 } from 'lucide-react';
 import { ROUTES } from './routes';
 import { AdminRole } from '@/types/enums/admin-role.enum';
@@ -39,6 +40,11 @@ export const SUPER_ADMIN_NAV_ITEMS: NavigationItem[] = [
         title: 'Plans',
         href: ROUTES.ADMIN.PLANS,
         icon: Target,
+    },
+    {
+        title: 'Greetings',
+        href: ROUTES.ADMIN.GREETINGS,
+        icon: MessageSquare,
     },
     {
         title: 'Admins',

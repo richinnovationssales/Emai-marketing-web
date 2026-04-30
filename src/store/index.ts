@@ -5,6 +5,7 @@ import adminReducer from './slices/admin.slice';
 import groupReducer from './slices/group.slice';
 import contactReducer from './slices/contact.slice';
 import templateReducer from './slices/template.slice';
+import greetingsReducer from './slices/greetings.slice';
 
 
 export const store = configureStore({
@@ -15,6 +16,7 @@ export const store = configureStore({
         groups: groupReducer,
         contacts: contactReducer,
         templates: templateReducer,
+        greetings: greetingsReducer,
     },
     middleware: (getDefaultMiddleware) =>
         getDefaultMiddleware({

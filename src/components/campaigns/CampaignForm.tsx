@@ -33,27 +33,18 @@ import { TemplateSelector } from "./TemplateSelector";
 import { RecurringScheduleForm } from "./RecurringScheduleForm";
 import { CampaignPreview } from "./CampaignPreview";
 import { RichTextEditor } from "./RichTextEditor";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-
-import {
-  GreetingFormat,
-  GREETING_LABELS,
-  injectGreetingIntoContent,
-} from "@/lib/utils/greetingUtils";
+import { GreetingInput } from "./GreetingInput";
+import { findInvalidGreetingTokens, GREETING_TOKENS } from "@/types/entities/greeting.types";
 
 import {
   useCreateCampaign,
   useUpdateCampaign,
 } from "@/lib/api/hooks/useCampaigns";
 import { useNameFields } from "@/lib/api/hooks/useCustomFields";
+import { useGreetings } from "@/lib/api/hooks/useGreetings";
 import { Template } from "@/types/entities/template.types";
 import { RecurringFrequency } from "@/types/entities/campaign.types";
+import { stripDesignMarker } from "@/components/templates/TemplateEditor";
 
 /* ---------------- Schema ---------------- */
 
@@ -76,9 +67,27 @@ const campaignSchema = z.object({
   recurringEndDate: z.string().optional(),
   customCronExpression: z.string().optional(),
   sendImmediately: z.boolean().default(true),
-  greetingFormat: z
-    .enum(["NONE", "FIRST_NAME", "LAST_NAME", "FULL_NAME"])
-    .default("NONE"),
+
+  // Greeting (optional). The text is the rendered template (with {{tokens}}).
+  // greetingId is set when a saved admin greeting was picked; cleared on free typing.
+  greeting: z
+    .string()
+    .max(500, "Greeting must be less than 500 characters")
+    .default("")
+    .superRefine((template, ctx) => {
+      const invalid = findInvalidGreetingTokens(template);
+      if (invalid.length > 0) {
+        ctx.addIssue({
+          code: "custom",
+          message: `Invalid token(s): ${invalid
+            .map((t) => `{{${t}}}`)
+            .join(", ")}. Allowed: ${GREETING_TOKENS.map(
+            (t) => `{{${t}}}`,
+          ).join(", ")}`,
+        });
+      }
+    }),
+  greetingId: z.string().nullable().optional(),
 });
 type CampaignFormValues = z.infer<typeof campaignSchema>;
 
@@ -129,6 +138,7 @@ export function CampaignForm({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { data: nameFields = [], isSuccess: nameFieldsReady } = useNameFields();
+  const { data: greetings = [] } = useGreetings();
 
   const createCampaign = useCreateCampaign();
   const updateCampaign = useUpdateCampaign();
@@ -147,7 +157,8 @@ export function CampaignForm({
       recurringTimezone: "Asia/Kolkata",
       recurringDaysOfWeek: [],
       sendImmediately: true,
-      greetingFormat: "NONE",
+      greeting: "",
+      greetingId: null,
       ...initialData,
     },
   });
@@ -158,24 +169,15 @@ export function CampaignForm({
   const isRecurring = watch("isRecurring");
   const recurringFrequency = watch("recurringFrequency");
 
-  const greetingFormat = watch("greetingFormat");
-
   // Which template is active (dropdown and upload are mutually exclusive)
   const activeTemplateHtml = selectedTemplateHtml || uploadedTemplateHtml;
-
-  const handleGreetingChange = (format: GreetingFormat) => {
-    setValue("greetingFormat", format);
-    const currentContent = form.getValues("content");
-    const updated = injectGreetingIntoContent(currentContent, format);
-    setValue("content", updated, { shouldValidate: true });
-  };
 
   /* ---------------- Template Selection (Dropdown) ---------------- */
 
   const handleTemplateSelect = (template: Template | null) => {
     if (template) {
       setSelectedTemplateId(template.id);
-      setSelectedTemplateHtml(template.content);
+      setSelectedTemplateHtml(stripDesignMarker(template.content));
 
       // Clear uploaded file when dropdown template is chosen
       setUploadedFileName("");
@@ -208,7 +210,7 @@ export function CampaignForm({
       setSelectedTemplateHtml("");
 
       setUploadedFileName(file.name);
-      setUploadedTemplateHtml(html);
+      setUploadedTemplateHtml(stripDesignMarker(html));
     };
     reader.readAsText(file);
   };
@@ -246,7 +248,8 @@ export function CampaignForm({
       subject: data.subject,
       name: data.name,
       groupIds: data.groupIds,
-      greetingFormat: data.greetingFormat,
+      greetingId: data.greetingId ?? null,
+      greetingSnapshot: data.greeting?.trim() ? data.greeting : null,
       isRecurring: data.isRecurring,
       ...(data.isRecurring
         ? {
@@ -330,36 +333,35 @@ export function CampaignForm({
                     )}
                   />
 
-                  {/* Between subject FormField and content FormField */}
-                  {/* <div className="space-y-2">
-                    <Label>Greeting Personalization</Label>
-                    <Select
-                      value={greetingFormat}
-                      onValueChange={(val) =>
-                        handleGreetingChange(val as GreetingFormat)
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select greeting format" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {(
-                          Object.entries(GREETING_LABELS) as [
-                            GreetingFormat,
-                            string,
-                          ][]
-                        ).map(([value, label]) => (
-                          <SelectItem key={value} value={value}>
-                            {label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <p className="text-xs text-muted-foreground">
-                      Inserts a personalized greeting at the top of your email
-                      body. Placeholders are replaced per recipient on send.
-                    </p>
-                  </div> */}
+                  <FormField
+                    control={form.control}
+                    name="greeting"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Greeting</FormLabel>
+                        <FormControl>
+                          <GreetingInput
+                            value={field.value}
+                            greetingId={watch("greetingId") ?? null}
+                            greetings={greetings}
+                            onChange={({ value, greetingId }) => {
+                              field.onChange(value);
+                              setValue("greetingId", greetingId, {
+                                shouldDirty: true,
+                              });
+                            }}
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          Start typing to see admin-created greetings, or write
+                          your own. Tokens like{" "}
+                          <code className="bg-muted px-1 rounded">{`{{firstName}}`}</code>{" "}
+                          are replaced per recipient on send.
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
                   <FormField
                     control={form.control}
