@@ -20,27 +20,34 @@ export const campaignKeys = {
 };
 
 // Fetch all campaigns
+// `refetchOnMount: 'always'` overrides the global default of `false` so the
+// list reflects mutations performed on a different page (e.g. create →
+// list). Without it, the unmounted list misses the invalidate event and
+// React Query serves stale cache on remount.
 export const useCampaigns = () => {
   return useQuery({
     queryKey: campaignKeys.lists(),
     queryFn: () => campaignService.getAll(),
+    refetchOnMount: 'always',
   });
 };
 
-// Fetch single campaign by ID
+// Fetch single campaign by ID. Same reasoning as useCampaigns above.
 export const useCampaign = (id: string) => {
   return useQuery({
     queryKey: campaignKeys.detail(id),
     queryFn: () => campaignService.getById(id),
     enabled: !!id,
+    refetchOnMount: 'always',
   });
 };
 
-// Fetch pending campaigns (admin only)
+// Fetch pending campaigns (admin only). Same reasoning as useCampaigns.
 export const usePendingCampaigns = () => {
   return useQuery({
     queryKey: campaignKeys.pending(),
     queryFn: () => campaignService.getPending(),
+    refetchOnMount: 'always',
   });
 };
 

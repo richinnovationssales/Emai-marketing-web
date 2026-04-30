@@ -398,7 +398,7 @@ export default function TemplateEditor({
       </div>
 
       {/* ===================== INFO STRIP ===================== */}
-      <div className="flex flex-wrap items-center gap-4 border-b bg-muted/40 px-4 py-2 text-xs text-muted-foreground shrink-0">
+      {/* <div className="flex flex-wrap items-center gap-4 border-b bg-muted/40 px-4 py-2 text-xs text-muted-foreground shrink-0">
         <span>Drag blocks from the left to start building.</span>
         <span className="hidden sm:inline">·</span>
         <span className="hidden sm:inline">
@@ -406,7 +406,7 @@ export default function TemplateEditor({
           <code className="rounded bg-muted px-1">{"{{firstName}}"}</code> for
           personalisation.
         </span>
-      </div>
+      </div> */}
 
       {/* ===================== EDITOR ===================== */}
       <div className="flex-1 overflow-hidden">

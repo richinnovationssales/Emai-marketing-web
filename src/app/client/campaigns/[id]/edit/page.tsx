@@ -47,6 +47,8 @@ export default function EditCampaignPage() {
           // Based on API doc provided earlier, Campaign object doesn't explicitly list groupIds but Create payloads do.
           // Usually backend hydration returns them. We'll assume they might be missing or handle them if present.
           // Let's check the type definition if possible.
+          greeting: campaign.greetingSnapshot ?? "",
+          greetingId: campaign.greetingId ?? null,
           isRecurring: campaign.isRecurring,
           recurringFrequency: campaign.recurringFrequency,
           recurringTime: campaign.recurringTime ?? undefined,

@@ -37,6 +37,10 @@ export interface Campaign {
     mailgunTags?: string[];
     sentAt: string | null;
     scheduledDate: string | null;
+
+    // Greeting (admin-managed template; snapshot is the frozen text)
+    greetingId?: string | null;
+    greetingSnapshot?: string | null;
     
     // Relations
     createdBy?: UserSummary;
@@ -54,7 +58,11 @@ export interface CreateCampaignDTO {
     subject: string;
     content: string;
     groupIds?: string[];
-    
+
+    // Greeting (optional)
+    greetingId?: string | null;
+    greetingSnapshot?: string | null;
+
     // Recurring Schedule (optional)
     isRecurring?: boolean;
     recurringFrequency?: RecurringFrequency;
@@ -72,7 +80,11 @@ export interface UpdateCampaignDTO {
     subject?: string;
     content?: string;
     groupIds?: string[];
-    
+
+    // Greeting (optional)
+    greetingId?: string | null;
+    greetingSnapshot?: string | null;
+
     // Recurring Schedule (optional)
     isRecurring?: boolean;
     recurringFrequency?: RecurringFrequency;

@@ -12,24 +12,31 @@ export const adminDomainKeys = {
 };
 
 /**
- * Fetch domain configuration for a specific client (admin)
+ * Fetch domain configuration for a specific client (admin).
+ * `refetchOnMount: 'always'` overrides the global default of `false` so
+ * config/history reflect mutations performed on a different page. Without
+ * it, the unmounted page misses the invalidate event and React Query
+ * serves stale cache on remount.
  */
 export const useAdminDomainConfig = (clientId: string) => {
   return useQuery({
     queryKey: adminDomainKeys.config(clientId),
     queryFn: () => adminDomainService.get(clientId),
     enabled: !!clientId,
+    refetchOnMount: 'always',
   });
 };
 
 /**
- * Fetch domain change history for a specific client (admin)
+ * Fetch domain change history for a specific client (admin).
+ * Same reasoning as useAdminDomainConfig above.
  */
 export const useAdminDomainHistory = (clientId: string) => {
   return useQuery({
     queryKey: adminDomainKeys.history(clientId),
     queryFn: () => adminDomainService.getHistory(clientId),
     enabled: !!clientId,
+    refetchOnMount: 'always',
   });
 };
 
