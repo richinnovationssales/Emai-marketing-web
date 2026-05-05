@@ -80,7 +80,8 @@ export function GreetingsTable({
                                 <TableRow key={greeting.id}>
                                     <TableCell className="font-medium">{greeting.name}</TableCell>
                                     <TableCell>
-                                        <code className="text-sm bg-gray-100 px-2 py-1 rounded">
+                                        {/* <code className="text-sm bg-gray-100 px-2 py-1 rounded"> */}
+                                        <code className="text-sm px-2 py-1 rounded bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-gray-100">
                                             {greeting.template}
                                         </code>
                                     </TableCell>
