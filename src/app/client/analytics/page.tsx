@@ -25,7 +25,7 @@ import {
   YAxis,
   CartesianGrid,
 } from "recharts";
-import { format } from "date-fns";
+import { addDays, startOfDay } from "date-fns";
 import { toast } from "sonner";
 
 export default function AnalyticsPage() {
@@ -41,9 +41,13 @@ export default function AnalyticsPage() {
     try {
       setLoading(true);
       setError(null);
+      // Send the viewer's local day boundaries as full timestamps:
+      // start = local midnight of the first day,
+      // end   = local midnight after the last day (exclusive), so the last
+      //         selected day is included in full.
       const params = {
-        startDate: startDate ? format(startDate, "yyyy-MM-dd") : undefined,
-        endDate: endDate ? format(endDate, "yyyy-MM-dd") : undefined,
+        startDate: startDate ? startOfDay(startDate).toISOString() : undefined,
+        endDate: endDate ? addDays(startOfDay(endDate), 1).toISOString() : undefined,
       };
 
       const response = await analyticsService.getOverview(params);
@@ -163,7 +167,7 @@ export default function AnalyticsPage() {
           title="Total Sent"
           value={overview.totalSent}
           icon={Mail}
-          description="Total emails sent"
+          description="Emails sent in the period; other figures are outcomes of these emails"
         />
         <AnalyticsMetricCard
           title="Delivered"
