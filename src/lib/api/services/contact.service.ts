@@ -75,10 +75,15 @@ export const contactService = {
         headers: { "Content-Type": "multipart/form-data" },
       },
     );
-    // API doc says it returns simple JSON, not always wrapped in "data" or "success".
-    // But doc example says: { "success": 42, "failed": 3, "message": "..." }
-    // If the backend wraps it in standard ApiResponse, we'd need data.data.
-    // Assuming the doc shows the raw response body.
+    // Raw body: { total, success, failed, message, warnings?, errors? }
+    return data;
+  },
+
+  // Excel template built from the client's custom fields
+  downloadUploadTemplate: async (): Promise<Blob> => {
+    const { data } = await apiClient.get<Blob>("/contacts/upload-template", {
+      responseType: "blob",
+    });
     return data;
   },
 

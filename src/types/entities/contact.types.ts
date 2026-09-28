@@ -34,11 +34,21 @@ export interface UpdateContactDTO {
     // groupId is NOT updatable via this endpoint per doc
 }
 
+export interface BulkImportRowError {
+    /** Row number as shown in Excel (header is row 1) */
+    row: number;
+    email?: string;
+    reason: string;
+}
+
 export interface BulkImportResult {
+    total?: number;
     success: number;
     failed: number;
     message: string;
-    // API doc says: { "success": 42, "failed": 3, "message": "..." }
+    warnings?: string[];
+    errors?: BulkImportRowError[];
+}
     // Previous type had "imported" and "errors" array. API doc v2 is simpler?
     // Doc says: "Rows that fail validation are skipped... response tells you how many succeeded vs. failed."
     // Let's stick to the v2 doc.
