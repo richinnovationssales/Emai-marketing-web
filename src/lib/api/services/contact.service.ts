@@ -95,7 +95,7 @@ export const contactService = {
   // In contact.service.ts
   search: async (params: { q: string; cursor?: string; limit?: number }) => {
     const query = new URLSearchParams({
-      q: params.q,
+      query: params.q,
       limit: String(params.limit ?? 20),
       ...(params.cursor && { cursor: params.cursor }),
     });
