@@ -49,10 +49,6 @@ export interface BulkImportResult {
     warnings?: string[];
     errors?: BulkImportRowError[];
 }
-    // Previous type had "imported" and "errors" array. API doc v2 is simpler?
-    // Doc says: "Rows that fail validation are skipped... response tells you how many succeeded vs. failed."
-    // Let's stick to the v2 doc.
-}
 
 export interface ContactFilters {
     cursor?: string;
