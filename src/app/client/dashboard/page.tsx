@@ -29,7 +29,8 @@ import {
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { dashboardService } from "@/lib/api/services/dashboard.service";
-import { format } from "date-fns";
+import { format, startOfDay, endOfDay } from "date-fns";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 /* ===================== TYPES ===================== */
@@ -105,17 +106,9 @@ const fetchDashboardData = async (): Promise<DashboardData> => {
       campaignStats,
     };
   } catch (error) {
+    // Re-throw: silently returning zeros hides backend/auth failures.
     console.error("Failed to fetch dashboard data:", error);
-    return {
-      stats: {
-        contacts: 0,
-        campaigns: 0,
-        emailsSent: 0,
-        emailsRemaining: 0,
-      },
-      campaignsPerMonth: [],
-      campaignStats: [],
-    };
+    throw error;
   }
 };
 
@@ -124,6 +117,7 @@ const fetchDashboardData = async (): Promise<DashboardData> => {
 export default function ClientDashboard() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const fetchedRef = useRef(false);
 
   // Date range state
@@ -135,10 +129,10 @@ export default function ClientDashboard() {
   useEffect(() => {
     if (fetchedRef.current) return;
     fetchedRef.current = true;
-    fetchDashboardData().then((res) => {
-      setData(res);
-      setLoading(false);
-    });
+    fetchDashboardData()
+      .then((res) => setData(res))
+      .catch(() => setLoadError("Failed to load dashboard data. Please refresh."))
+      .finally(() => setLoading(false));
   }, []);
 
   // Filter campaign stats by selected date range
@@ -197,11 +191,12 @@ export default function ClientDashboard() {
 
     setExporting(true);
     try {
+      // Full ISO timestamps covering the whole local day (see analytics overview page)
       const params: { startDate?: string; endDate?: string } = {};
-      if (startDate) params.startDate = format(startDate, "yyyy-MM-dd");
-      if (endDate) params.endDate = format(endDate, "yyyy-MM-dd");
+      if (startDate) params.startDate = startOfDay(startDate).toISOString();
+      if (endDate) params.endDate = endOfDay(endDate).toISOString();
 
-      const blob = await dashboardService.downloadDashboardReport(params);
+      const blob = await dashboardService.downloadCampaignPerformance(params);
 
       // Trigger browser download
       const url = window.URL.createObjectURL(blob);
@@ -209,8 +204,8 @@ export default function ClientDashboard() {
       a.href = url;
       const dateStr = new Date().toISOString().split("T")[0];
       const rangeSuffix =
-        params.startDate && params.endDate
-          ? `_${params.startDate}_to_${params.endDate}`
+        startDate && endDate
+          ? `_${format(startDate, "yyyy-MM-dd")}_to_${format(endDate, "yyyy-MM-dd")}`
           : "";
       a.download = `Dashboard_Report_${dateStr}${rangeSuffix}.xlsx`;
       document.body.appendChild(a);
@@ -219,6 +214,7 @@ export default function ClientDashboard() {
       window.URL.revokeObjectURL(url);
     } catch (error) {
       console.error("Failed to download report:", error);
+      toast.error("Failed to download report");
     } finally {
       setExporting(false);
     }
@@ -238,7 +234,20 @@ export default function ClientDashboard() {
     );
   }
 
-  if (!data) return null;
+  if (loadError || !data) {
+    return (
+      <div className="space-y-6">
+        <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
+        <Card>
+          <CardContent className="pt-6">
+            <p className="text-center text-muted-foreground">
+              {loadError ?? "No data available"}
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   const { stats } = data;
 

@@ -14,7 +14,10 @@ import {
 } from "lucide-react";
 import { analyticsService } from "@/lib/api/services/analytics.service";
 import { AnalyticsEmailEvent } from "@/types/entities/analytics.types";
-import { EmailEventType } from "@/types/enums/email-event-type.enum";
+import {
+  EmailEventType,
+  EmailEventTypeLabels,
+} from "@/types/enums/email-event-type.enum";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -27,8 +30,8 @@ const eventIcons: Record<EmailEventType, React.ElementType> = {
   [EmailEventType.OPENED]: Eye,
   [EmailEventType.CLICKED]: MousePointerClick,
   [EmailEventType.BOUNCED]: Ban,
-  [EmailEventType.SPAM_REPORTED]: AlertTriangle,
-  [EmailEventType.UNSUBSCRIBED]: XCircle,
+  [EmailEventType.FAILED]: XCircle,
+  [EmailEventType.COMPLAINED]: AlertTriangle,
 };
 
 const eventColors: Record<EmailEventType, string> = {
@@ -37,9 +40,17 @@ const eventColors: Record<EmailEventType, string> = {
   [EmailEventType.OPENED]: "bg-purple-500",
   [EmailEventType.CLICKED]: "bg-indigo-500",
   [EmailEventType.BOUNCED]: "bg-yellow-500",
-  [EmailEventType.SPAM_REPORTED]: "bg-red-500",
-  [EmailEventType.UNSUBSCRIBED]: "bg-gray-500",
+  [EmailEventType.FAILED]: "bg-orange-500",
+  [EmailEventType.COMPLAINED]: "bg-red-500",
 };
+
+// Fallbacks so an unexpected event type never crashes the page
+const getEventIcon = (type: string): React.ElementType =>
+  eventIcons[type as EmailEventType] ?? Mail;
+const getEventColor = (type: string): string =>
+  eventColors[type as EmailEventType] ?? "bg-gray-500";
+const getEventLabel = (type: string): string =>
+  EmailEventTypeLabels[type as EmailEventType] ?? type;
 
 export default function CampaignTimelinePage() {
   const params = useParams();
@@ -61,7 +72,12 @@ export default function CampaignTimelinePage() {
         const response = await analyticsService.getCampaignTimeline(campaignId);
         setEvents(response.data);
       } catch (err) {
-        setError("Failed to load campaign timeline");
+        // Backend returns 404 for campaigns not owned by the logged-in client
+        const status = (err as { response?: { status?: number } })?.response
+          ?.status;
+        setError(
+          status === 404 ? "Campaign not found" : "Failed to load campaign timeline"
+        );
         console.error("Timeline error:", err);
       } finally {
         setLoading(false);
@@ -135,7 +151,7 @@ export default function CampaignTimelinePage() {
       {/* Event Type Summary */}
       <div className="grid gap-4 md:grid-cols-4 lg:grid-cols-7">
         {Object.entries(eventTypeCounts).map(([type, count]) => {
-          const Icon = eventIcons[type as EmailEventType];
+          const Icon = getEventIcon(type);
           return (
             <Card
               key={type}
@@ -147,7 +163,9 @@ export default function CampaignTimelinePage() {
                   <Icon className="h-4 w-4 text-muted-foreground" />
                   <span className="text-2xl font-bold">{count}</span>
                 </div>
-                <p className="text-xs text-muted-foreground mt-1">{type}</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {getEventLabel(type)}
+                </p>
               </CardContent>
             </Card>
           );
@@ -165,7 +183,7 @@ export default function CampaignTimelinePage() {
               <TabsTrigger value="ALL">All Events</TabsTrigger>
               {Object.keys(eventTypeCounts).map((type) => (
                 <TabsTrigger key={type} value={type}>
-                  {type}
+                  {getEventLabel(type)}
                 </TabsTrigger>
               ))}
             </TabsList>
@@ -179,8 +197,8 @@ export default function CampaignTimelinePage() {
           ) : (
             <div className="space-y-3 max-h-[600px] overflow-y-auto">
               {filteredEvents.map((event, index) => {
-                const Icon = eventIcons[event.eventType];
-                const color = eventColors[event.eventType];
+                const Icon = getEventIcon(event.eventType);
+                const color = getEventColor(event.eventType);
 
                 return (
                   <div
@@ -192,7 +210,9 @@ export default function CampaignTimelinePage() {
                     </div>
                     <div className="flex-1 space-y-1">
                       <div className="flex items-center justify-between">
-                        <p className="font-medium">{event.eventType}</p>
+                        <p className="font-medium">
+                          {getEventLabel(event.eventType)}
+                        </p>
                         <span className="text-sm text-muted-foreground">
                           {format(
                             new Date(event.timestamp),

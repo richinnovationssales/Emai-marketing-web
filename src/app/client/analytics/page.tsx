@@ -25,7 +25,7 @@ import {
   YAxis,
   CartesianGrid,
 } from "recharts";
-import { format } from "date-fns";
+import { startOfDay, endOfDay } from "date-fns";
 import { toast } from "sonner";
 
 export default function AnalyticsPage() {
@@ -35,15 +35,18 @@ export default function AnalyticsPage() {
   const [startDate, setStartDate] = useState<Date | undefined>();
   const [endDate, setEndDate] = useState<Date | undefined>();
   const [isRecalculating, setIsRecalculating] = useState(false);
-  const fetchedRef = useRef(false);
+  const lastFetchKeyRef = useRef<string | null>(null);
 
   const fetchOverview = async () => {
     try {
       setLoading(true);
       setError(null);
+      // Send full ISO timestamps covering the whole local day on both ends.
+      // A bare "yyyy-MM-dd" endDate parses to UTC midnight at the START of that day
+      // on the backend, which drops every event on the selected end date.
       const params = {
-        startDate: startDate ? format(startDate, "yyyy-MM-dd") : undefined,
-        endDate: endDate ? format(endDate, "yyyy-MM-dd") : undefined,
+        startDate: startDate ? startOfDay(startDate).toISOString() : undefined,
+        endDate: endDate ? endOfDay(endDate).toISOString() : undefined,
       };
 
       const response = await analyticsService.getOverview(params);
@@ -56,9 +59,12 @@ export default function AnalyticsPage() {
     }
   };
 
+  // Dedupe identical consecutive fetches (React StrictMode double-invoke),
+  // but still refetch when the filter is cleared after being set.
   useEffect(() => {
-    if (!startDate && !endDate && fetchedRef.current) return;
-    if (!startDate && !endDate) fetchedRef.current = true;
+    const key = `${startDate?.getTime() ?? ""}|${endDate?.getTime() ?? ""}`;
+    if (lastFetchKeyRef.current === key) return;
+    lastFetchKeyRef.current = key;
     fetchOverview();
   }, [startDate, endDate]);
 
@@ -72,15 +78,13 @@ export default function AnalyticsPage() {
     try {
       const result = await analyticsService.recalculateAll();
 
-      if (result.corrected > 0) {
-        toast.success(`Recalculated: ${result.corrected} of ${result.total} campaign(s) corrected`);
-      } else {
-        toast.success(`All ${result.total} campaign(s) are up to date`);
-      }
+      const count = result.data.campaignsRecalculated;
+      toast.success(`Recalculated analytics for ${count} campaign(s)`);
 
       // Re-fetch overview with fresh data
       await fetchOverview();
-    } catch {
+    } catch (err) {
+      console.error("Recalculate analytics error:", err);
       toast.error("Failed to recalculate analytics");
     } finally {
       setIsRecalculating(false);

@@ -35,6 +35,6 @@ export const EMAIL_EVENT_TYPES = {
     OPENED: EmailEventType.OPENED,
     CLICKED: EmailEventType.CLICKED,
     BOUNCED: EmailEventType.BOUNCED,
-    SPAM_REPORTED: EmailEventType.SPAM_REPORTED,
-    UNSUBSCRIBED: EmailEventType.UNSUBSCRIBED,
+    FAILED: EmailEventType.FAILED,
+    COMPLAINED: EmailEventType.COMPLAINED,
 } as const;

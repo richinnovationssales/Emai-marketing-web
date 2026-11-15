@@ -58,7 +58,7 @@ export interface CampaignAnalyticsDetail {
     status: CampaignStatus;
     sentAt: string | null;
   };
-  analytics: CampaignAnalyticsData;
+  analytics: CampaignAnalyticsData | null; // null until first webhook event
 }
 
 /**
@@ -138,29 +138,20 @@ export interface ClientAnalyticsResponse {
   remainingMessages?: number;
 }
 
-export interface RecalculateResult {
-  campaignId: string;
-  name: string;
-  status: string;
-  before: Partial<CampaignAnalyticsData>;
-  after: Partial<CampaignAnalyticsData>;
-}
-
+/**
+ * POST /analytics/recalculate-all
+ */
 export interface RecalculateAllResponse {
-  success: boolean;
-  total: number;
-  updated: number;
-  failed: number;
-  corrected: number;
-  results: RecalculateResult[];
+  success: true;
+  data: {
+    campaignsRecalculated: number;
+  };
 }
 
+/**
+ * POST /analytics/campaigns/:id/recalculate
+ */
 export interface RecalculateCampaignResponse {
-  success: boolean;
-  data: {
-    campaignId: string;
-    campaignName: string;
-    before: CampaignAnalyticsData;
-    after: CampaignAnalyticsData;
-  };
+  success: true;
+  data: CampaignAnalyticsDetail;
 }

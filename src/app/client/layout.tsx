@@ -24,7 +24,10 @@ export default function ClientLayout({
 
     analyticsService.recalculateAll().then(() => {
       sessionStorage.setItem(RECALC_SESSION_KEY, Date.now().toString());
-    }).catch(() => {});
+    }).catch((err) => {
+      // Non-blocking, but never silent
+      console.error("Background analytics recalculation failed:", err);
+    });
   }, []);
 
   return (

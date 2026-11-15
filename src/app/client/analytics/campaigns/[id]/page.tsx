@@ -14,7 +14,10 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import { analyticsService } from "@/lib/api/services/analytics.service";
-import { CampaignAnalyticsDetail } from "@/types/entities/analytics.types";
+import {
+  CampaignAnalyticsData,
+  CampaignAnalyticsDetail,
+} from "@/types/entities/analytics.types";
 import { AnalyticsMetricCard } from "@/components/analytics/AnalyticsMetricCard";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -39,6 +42,7 @@ export default function CampaignDetailAnalyticsPage() {
           campaignId
         );
         setData(response.data);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (err: any) {
         if (err.response?.status === 404) {
           setError("Campaign not found");
@@ -101,7 +105,25 @@ export default function CampaignDetailAnalyticsPage() {
     );
   }
 
-  const { campaign, analytics } = data;
+  const { campaign } = data;
+  // analytics is null until the first webhook event arrives for this campaign.
+  const hasAnalytics = data.analytics != null;
+  const a = data.analytics;
+  const analytics: CampaignAnalyticsData = {
+    campaignId: a?.campaignId ?? campaign.id,
+    totalSent: a?.totalSent ?? 0,
+    totalDelivered: a?.totalDelivered ?? 0,
+    totalOpened: a?.totalOpened ?? 0,
+    totalClicked: a?.totalClicked ?? 0,
+    totalBounced: a?.totalBounced ?? 0,
+    totalUnsubscribed: a?.totalUnsubscribed ?? 0,
+    totalComplaints: a?.totalComplaints ?? 0,
+    uniqueOpens: a?.uniqueOpens ?? 0,
+    uniqueClicks: a?.uniqueClicks ?? 0,
+    openRate: a?.openRate ?? 0,
+    clickRate: a?.clickRate ?? 0,
+    bounceRate: a?.bounceRate ?? 0,
+  };
 
   return (
     <div className="space-y-6">
@@ -148,6 +170,17 @@ export default function CampaignDetailAnalyticsPage() {
           </div>
         </CardContent>
       </Card>
+
+      {!hasAnalytics && (
+        <Card>
+          <CardContent className="pt-6">
+            <p className="text-center text-muted-foreground">
+              No delivery events received for this campaign yet. Metrics
+              appear once delivery/open events arrive (usually a few minutes).
+            </p>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Primary Metrics */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -200,10 +233,10 @@ export default function CampaignDetailAnalyticsPage() {
           variant="warning"
         />
         <AnalyticsMetricCard
-          title="Spam Complaints"
+          title="Complaints / Unsubscribes"
           value={analytics.totalComplaints}
           icon={AlertTriangle}
-          description="Spam reports"
+          description="Spam reports and unsubscribes"
           variant="danger"
         />
       </div>
@@ -270,23 +303,6 @@ export default function CampaignDetailAnalyticsPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              <div className="flex justify-between border-b pb-2">
-                <span className="text-sm">Unsubscribed</span>
-                <span className="font-medium">
-                  {analytics.totalUnsubscribed.toLocaleString()}
-                </span>
-              </div>
-              <div className="flex justify-between border-b pb-2">
-                <span className="text-sm">Engagement Rate</span>
-                <span className="font-medium">
-                  {(
-                    ((analytics.uniqueOpens + analytics.uniqueClicks) /
-                      analytics.totalSent) *
-                      100 || 0
-                  ).toFixed(1)}
-                  %
-                </span>
-              </div>
               <div className="flex justify-between border-b pb-2">
                 <span className="text-sm">Click-to-Open Rate</span>
                 <span className="font-medium">
